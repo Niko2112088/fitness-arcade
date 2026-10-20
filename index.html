@@ -150,10 +150,10 @@ for(let k=0;k<12;k++){let y=(k*117 +t*72*(scene===2?1.9:1))%720;let x=60+Math.si
 // 3D road
 poly([[W/2-48,267],[W/2+48,267],[1120,H],[160,H]],scene===3?'#344654':scene===1?'#3f3c43':'#364455');poly([[W/2-45,267],[W/2+45,267],[1070,H],[210,H]],scene===1?'#514b49':'#455062');
 let flow=(t*1.55)%1;
-for(let i=0;i<22;i++){let z=((i/22+flow)%1),p=project(z,0);let ww=lerp(5,800,1-z);let alpha=1-z;line(W/2-ww/2,p.y,W/2+ww/2,p.y,`rgba(176,208,226,${.05+alpha*.20})`,lerp(1,6,alpha));}
-for(let i=0;i<17;i++){let z=(i/17+flow)%1,p=project(z,0);line(W/2,p.y,W/2,p.y+Math.max(5,p.s*54),`rgba(255,218,134,${.05+(1-z)*.5})`,Math.max(2,p.s*8));}
+for(let i=0;i<22;i++){let z=((i/22-flow+1)%1),p=project(z,0);let ww=lerp(5,800,1-z);let alpha=1-z;line(W/2-ww/2,p.y,W/2+ww/2,p.y,`rgba(176,208,226,${.05+alpha*.20})`,lerp(1,6,alpha));}
+for(let i=0;i<17;i++){let z=((i/17-flow+1)%1),p=project(z,0);line(W/2,p.y,W/2,p.y+Math.max(5,p.s*54),`rgba(255,218,134,${.05+(1-z)*.5})`,Math.max(2,p.s*8));}
 // pillars to the side, temples in foreground
-for(let side of [-1,1])for(let i=0;i<11;i++){let z=(i/11+(t*.24)%1)%1,p=project(z,side*2.4),height=clamp(p.s*570,18,520),wid=clamp(p.s*75,4,100);rect(p.x-wid/2,p.y-height,wid,height,scene===4?'#352f48':'#24384a');rect(p.x-wid*.7,p.y-height,wid*1.4,Math.max(4,wid*.23),'#58647a');rect(p.x-wid*.75,p.y-10,wid*1.5,12,'#132233');if(i%3===0){glow(p.x,p.y-height*.67,35*p.s,'#ffad6199');rect(p.x-3*p.s,p.y-height*.72,6*p.s,22*p.s,'#ffd38e')}}
+for(let side of [-1,1])for(let i=0;i<11;i++){let z=((i/11-(t*.24)%1+1)%1),p=project(z,side*2.4),height=clamp(p.s*570,18,520),wid=clamp(p.s*75,4,100);rect(p.x-wid/2,p.y-height,wid,height,scene===4?'#352f48':'#24384a');rect(p.x-wid*.7,p.y-height,wid*1.4,Math.max(4,wid*.23),'#58647a');rect(p.x-wid*.75,p.y-10,wid*1.5,12,'#132233');if(i%3===0){glow(p.x,p.y-height*.67,35*p.s,'#ffad6199');rect(p.x-3*p.s,p.y-height*.72,6*p.s,22*p.s,'#ffd38e')}}
 // flying speed streaks
 for(let k=0;k<23;k++){let seed=k*107.7,xx=(Math.sin(seed*3.7)*.5+.5)*W,yy=((seed*5+t*140)%620)+60;ctx.globalAlpha=(Math.sin(t*2+k)*.3+.42)*.45;line(xx,yy,xx+(xx-W/2)*.025,yy+20,'#a4f1ff',1.2)}ctx.globalAlpha=1;
 }
