@@ -64,7 +64,7 @@ window.createTempleWorld=function(canvas){
  const landing=new T.Group();landing.name='landing';scene.add(landing);
  const jadeLight=new T.MeshBasicMaterial({color:0x6fffd0,transparent:true,opacity:.7});
  cube(jadeLight,0,.035,0,2.3,.035,2.2,landing);
- const landingRing=mesh(new T.TorusGeometry(.85,.035,6,32),gold,0,.08,0,1,1,1,landing);landingRing.rotation.x=Math.PI/2;
+ const landingRing=mesh(new T.TorusGeometry(.85,.035,6,32),gold,0,.08,0,1,1,1,landing);landingRing.rotation.x=Math.PI/2;mesh(new T.TorusGeometry(.6,.045,6,32),jadeLight,0,1.4,0,1,1,1,landing);
  const relic=mesh(new T.OctahedronGeometry(.3),gold,0,1.3,0);relic.name='relic';
  const idol=new T.Group();idol.name='watcher';scene.add(idol);
  cube(dark,0,.3,0,3.4,.6,2.2,idol);cube(stone,0,2.5,0,2.4,3.8,1.7,idol);cube(gold,0,4.6,0,3,.3,2,idol);
