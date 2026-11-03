@@ -1,9 +1,9 @@
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 (async()=>{
-const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox']});
+const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox','--enable-unsafe-swiftshader']});
 const page=await browser.newPage({viewport:{width:1440,height:900}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
-await page.goto(process.env.TEST_URL||'http://127.0.0.1:8081');await page.click('#tv-mode');assert.ok(await page.locator('body').evaluate(el=>el.classList.contains('tv')));await page.click('#exit-tv');await page.click('#start');
+await page.goto(process.env.TEST_URL||'http://127.0.0.1:8081');await page.click('#tv-mode');assert.ok(await page.locator('body').evaluate(el=>el.classList.contains('tv')));await page.click('#exit-tv');await page.click('#start');await page.evaluate(()=>{if(templeWorld)templeWorld.render=()=>{}});
 await page.evaluate(()=>{game.clock=1;game.travel=0;game.runUntil=0;game.pace=0});
 await page.waitForTimeout(250);assert.equal(await page.evaluate(()=>game.travel),0);
 await page.evaluate(()=>handleAction('RUN'));await page.waitForTimeout(350);assert.ok(await page.evaluate(()=>game.travel)>.05);
