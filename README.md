@@ -35,3 +35,7 @@ Omit `CHROMIUM_PATH` to use Playwright's own browser. `TEST_URL` overrides the l
 The route now renders using a vendored Three.js r160.1 build (MIT; license in `vendor/THREE-LICENSE.txt`). Original procedural stone, canopy, gateway, hanging vines, torchlit walls and a curved centreline replace the flat runway. Camera movement reflects duck/jump/dodge inputs. The first 30 seconds are the visual review slice; later gameplay and the existing 2D boss remain prototype material. No footage, brands or artwork from the reference videos are bundled.
 
 Run `node tests/scene.cjs` for separate WebGL smoke checks and jungle/gate/temple screenshots (system Chromium at `/usr/bin/chromium`). The gameplay regression intentionally stubs rendering after initial load to isolate game rules from software-GPU frame rate. Real iPhone performance, AirPlay and pose recognition remain unverified.
+
+## Staged encounters (0.4)
+
+The gate sentinel appears at 15 seconds and the 18–29 second encounter alternates punches, block and dodge prompts. Successful punches trigger recoil and the existing comic impact. A narrow bridge replaces the floor and side walls between route distances 150 and 210; a lower ravine surface remains visible beneath it. The bridge is reached through actual running progress (roughly 40 seconds of continuous movement), not a forced teleport. Scene smoke checks cover sentinel visibility, recoil reset and a bridge screenshot.
