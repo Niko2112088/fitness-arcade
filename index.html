@@ -25,20 +25,24 @@ canvas{display:block;width:100%;height:100%;background:#10182a} .hidden{display:
 @media(orientation:portrait) and (max-width:700px){#shell{width:calc(100vw - 12px)}.rotate-tip{display:block;color:#bdd0e6;text-align:center;font-size:12px;padding:3px}#control-area{flex-wrap:wrap;max-width:490px}#control-area button{flex:1 0 19%;max-width:none;height:48px}#app{justify-content:center}#footnote{white-space:normal}}
 @media(max-height:560px) and (orientation:landscape){.menu-card .subtitle,.menu-card .tiny-note{display:none}.menu-card .settings{flex-wrap:nowrap;gap:5px;margin:6px 0}.menu-card .big-title{font-size:clamp(26px,5.6vw,40px);margin:3px 0}.menu-card .eyebrow{font-size:8px}.menu-card .setting-group{padding:4px}.menu-card .choice{padding:4px 6px;font-size:9px}.menu-card .primary{padding:8px 18px}.menu-card .secondary{padding:8px 12px}.menu-card{padding:5px}}
 @media(max-width:700px) and (orientation:portrait){.menu-card .subtitle,.menu-card .tiny-note,.menu-card .eyebrow{display:none}.menu-card .settings{margin:3px 0 5px;gap:4px}.menu-card .big-title{font-size:27px;margin:0}.menu-card .setting-group{padding:2px 4px}.menu-card .setting-label{font-size:7px;margin:0 0 2px}.menu-card .choice{font-size:8px;padding:3px 5px}.menu-card .primary{font-size:10px;padding:7px 9px}.menu-card .secondary{font-size:9px;padding:6px 8px}.menu-card .actions{gap:4px}.menu-card{padding:2px}.overlay{padding:2px}}
+body.tv #app{padding:0;gap:0}body.tv #shell{width:min(100vw,calc(100dvh * 16/9));border:0;border-radius:0}body.tv #control-area,body.tv #footnote{display:none}#exit-tv{position:fixed;right:10px;bottom:10px;z-index:20;background:#142334bf;border:1px solid #9ac5db42;border-radius:12px;padding:10px;color:white}body.tv .menu-card{max-height:95%;overflow:auto}
+#world3d{position:absolute;inset:0;width:100%;height:100%}#world{position:relative;background:transparent}#cue{top:76%;min-width:0}#cue-icon{font-size:28px}#cue-title{font-size:32px}#cue-instruction{font-size:11px}.top-ui{background:linear-gradient(#0718119c,transparent);padding:14px 20px}.brand-mini{letter-spacing:3px}#subhead{top:70px}.hearts{font-size:19px;color:#d3edb5}body.tv #exit-tv{opacity:.4}
 </style>
 </head>
 <body>
+<button id="exit-tv" class="hidden" aria-label="Выйти из режима телевизора">✕ ТВ</button>
 <div id="app">
   <div class="rotate-tip">↻ Для большого игрового экрана поверни телефон горизонтально</div>
   <div id="shell">
+    <canvas id="world3d" width="1280" height="720" aria-label="Трёхмерный маршрут"></canvas>
     <canvas id="world" width="1280" height="720" aria-label="Игровая сцена забега"></canvas>
     <div id="game-ui" class="hidden">
       <div class="top-ui">
         <div><div class="brand-mini">FITNESS ARCADE</div><div id="zone" class="level-name">ХРАМ СКОРОСТИ</div></div>
-        <div><div class="stat">ЖИЗНИ</div><div id="hearts" class="hearts">♥ ♥ ♥</div></div>
+        <div><div class="stat">ТОЧНОСТЬ</div><div id="hearts" class="hearts">—</div></div>
         <div class="progress-wrap"><div class="stat">ПРОГРЕСС</div><div class="progress-track"><div id="progress" class="progress-bar"></div></div></div>
         <div><div class="stat">СЧЁТ</div><div id="score" class="numbers">00000</div></div>
-        <div><div class="stat">КОМБО</div><div id="combo" class="numbers">×0</div></div>
+        <div><div class="stat">АРТЕФАКТЫ</div><div id="relic-count" class="numbers">♦ 0</div></div><div><div class="stat">КОМБО</div><div id="combo" class="numbers">×0</div></div>
       </div>
       <div id="subhead">⚡ НЕ ОСТАНАВЛИВАЙСЯ</div>
       <div id="boss" class="hidden"><div id="boss-title">КАМЕННЫЙ СТРАЖ</div><div id="boss-health"><div id="boss-hp"></div></div><div id="boss-meta">ВЫНОСЛИВОСТЬ 100%</div></div>
@@ -52,45 +56,49 @@ canvas{display:block;width:100%;height:100%;background:#10182a} .hidden{display:
       <div class="menu-card">
         <div class="eyebrow">⚡ ТЕЛО — ТВОЙ КОНТРОЛЛЕР</div>
         <h1 class="big-title">TEMPLE <span>RUSH</span></h1>
-        <div class="subtitle">Беги сквозь ловушки, прыгай или перешагивай, пригибайся, уклоняйся и победи Каменного стража. Разные движения — настоящее аркадное приключение!</div>
+        <div class="subtitle">Три минуты от джунглей до сердца храма. Беги на месте, прыгай, уклоняйся и разбей защиту стража. Ошибки сбивают комбо — приключение продолжается!</div>
         <div class="settings">
           <div class="setting-group"><div class="setting-label">КЛАСС БОЯ</div><div class="choice-row"><button class="choice active" data-kind="class" data-val="assassin">🗡 Ассасин</button><button class="choice" data-kind="class" data-val="berserker">⚔ Берсерк</button></div></div>
-          <div class="setting-group"><div class="setting-label">ФИЗИЧЕСКИЙ РЕЖИМ</div><div class="choice-row"><button class="choice active" data-kind="jump" data-val="none">Без прыжков</button><button class="choice" data-kind="jump" data-val="yes">С прыжками</button></div></div>
+          <div class="setting-group"><div class="setting-label">ФИЗИЧЕСКИЙ РЕЖИМ</div><div class="choice-row"><button class="choice" data-kind="jump" data-val="none">Без прыжков</button><button class="choice active" data-kind="jump" data-val="yes">С прыжками</button></div></div>
           <div class="setting-group"><div class="setting-label">ТЕМП</div><div class="choice-row"><button class="choice active" data-kind="difficulty" data-val="normal">Обычный</button><button class="choice" data-kind="difficulty" data-val="easy">Лёгкий</button></div></div>
         </div>
-        <div class="actions"><button id="start" class="primary">▶ НАЧАТЬ ЗАБЕГ</button><button id="camera-menu" class="secondary">◉ КАМЕРА (ЭКСП.)</button></div>
-        <div class="tiny-note">Управление: кнопки снизу или клавиатура. Камера с распознаванием позы — экспериментальный режим: нужен HTTPS/localhost и интернет для загрузки MediaPipe. Музыка запускается после нажатия «Начать».</div>
+        <div class="actions"><button id="start" class="primary">▶ НАЧАТЬ ЗАБЕГ</button><button id="tv-mode" class="secondary">▣ ЭКРАН ТВ</button><button id="camera-menu" class="secondary">◉ КАМЕРА (ЭКСП.)</button></div>
+        <div class="tiny-note">Управление: кнопки снизу или клавиатура. Камера с распознаванием позы — экспериментальный режим: нужен HTTPS/localhost и интернет для загрузки MediaPipe. Музыка запускается после нажатия «Начать». Для ТВ: поверни iPhone горизонтально, включи «Повтор экрана» AirPlay и режим «Экран ТВ».</div>
       </div>
     </div>
     <div class="overlay hidden" id="pause-menu"><div class="menu-card"><div class="eyebrow">ПЕРЕДЫШКА</div><h2 class="big-title">ПАУЗА</h2><p class="subtitle" id="pause-reason">Продолжай, когда будешь готов.</p><div class="actions"><button class="primary" id="resume">▶ ПРОДОЛЖИТЬ</button><button class="secondary" id="restart-menu">↩ В МЕНЮ</button></div></div></div>
-    <div class="overlay hidden" id="result-menu"><div class="menu-card"><div class="eyebrow" id="result-label">МИССИЯ ЗАВЕРШЕНА</div><h2 class="big-title" id="result-title">ПОБЕДА!</h2><div class="big-number" id="result-points">00000</div><div class="summary-grid"><div><b id="result-hit">0</b><small>УДАЧНЫХ ДЕЙСТВИЙ</small></div><div><b id="result-combo">0</b><small>ЛУЧШЕЕ КОМБО</small></div><div><b id="result-life">0</b><small>ОСТАЛОСЬ ЖИЗНЕЙ</small></div></div><div class="actions"><button class="primary" id="again">↻ ЕЩЁ РАЗ!</button><button class="secondary" id="back-menu">В МЕНЮ</button></div><div class="tiny-note" id="result-detail"></div></div></div>
+    <div class="overlay hidden" id="result-menu"><div class="menu-card"><div class="eyebrow" id="result-label">МИССИЯ ЗАВЕРШЕНА</div><h2 class="big-title" id="result-title">ПОБЕДА!</h2><div class="big-number" id="result-points">00000</div><div class="summary-grid"><div><b id="result-hit">0</b><small>УДАЧНЫХ ДЕЙСТВИЙ</small></div><div><b id="result-combo">0</b><small>ЛУЧШЕЕ КОМБО</small></div><div><b id="result-life">0</b><small>ТОЧНОСТЬ</small></div></div><div class="actions"><button class="primary" id="again">↻ ЕЩЁ РАЗ!</button><button class="secondary" id="back-menu">В МЕНЮ</button></div><div class="tiny-note" id="result-detail"></div></div></div>
   </div>
   <div id="control-area">
+    <button data-act="RUN"><span>⚡</span>БЕГ <small>R</small></button>
     <button data-act="LEFT"><span>↙</span>ВЛЕВО <small>←</small></button>
     <button data-act="DUCK"><span>⬇</span>ПРИСЕСТЬ <small>↓</small></button>
     <button data-act="RIGHT"><span>↘</span>ВПРАВО <small>→</small></button>
     <button data-act="STEP"><span>🦵</span>КОЛЕНО <small>W</small></button>
-    <button data-act="JUMP"><span>⬆</span><span id="jump-label" style="display:inline;font-size:inherit">ШАГ</span> <small>↑</small></button>
-    <button data-act="JACK"><span>✳</span><span id="jack-label" style="display:inline;font-size:inherit">РУКИ</span> <small>J</small></button>
+    <button data-act="JUMP"><span>⬆</span><span id="jump-label" style="display:inline;font-size:inherit">ПРЫЖОК</span> <small>↑</small></button>
+    <button data-act="JACK"><span>✳</span><span id="jack-label" style="display:inline;font-size:inherit">ДЖЕК</span> <small>J</small></button>
     <button data-act="FLAP"><span>〰</span>МАХИ <small>F</small></button>
     <button data-act="PUNCH"><span>🥊</span>УДАР <small>ПРОБЕЛ</small></button>
     <button data-act="BLOCK"><span>🛡</span>БЛОК <small>B</small></button>
     <button id="pause-btn"><span>Ⅱ</span>ПАУЗА</button>
   </div>
-  <div id="footnote">Прототип 0.1 • Музыка синтезируется в браузере • Ничего не записывается и не отправляется</div>
+  <div id="footnote">Прототип 0.5 • 3D • Забег 3:00 • Музыка синтезируется в браузере • Ничего не записывается и не отправляется</div>
 </div>
+<script src="vendor/three.min.js"></script>
+<script src="world3d.js"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id), canvas=$('world'), ctx=canvas.getContext('2d');
+const templeWorld=window.createTempleWorld($('world3d'));if(!templeWorld)$('world3d').classList.add('hidden');
 const W=1280,H=720, TWO=Math.PI*2;
-const settings={class:'assassin',jump:'none',difficulty:'normal'};
-const game={mode:'MENU',clock:0,lives:3,score:0,combo:0,maxCombo:0,hits:0,events:[],idx:0,bossHp:100,stamina:100,armor:100,attackCooldown:0,pulse:0,cameraShake:0,actionName:'',actionAge:10,lastActionAt:-100,pace:0,scene:0,calibration:null};
-const phases=[{at:0,name:'ХРАМ СКОРОСТИ',scene:0},{at:35,name:'МОСТ НАД БЕЗДНОЙ',scene:1},{at:67,name:'ПОЛЁТ НАД КАНЬОНОМ',scene:2},{at:91,name:'КРЕПОСТЬ СТРАЖЕЙ',scene:3},{at:114,name:'КАМЕННЫЙ СТРАЖ',scene:4}];
-const totalTime=174;
-const cueDefs={DUCK:{icon:'⬇',title:'ПРИГНИСЬ!',tip:'ОБРУШИВАЮЩАЯСЯ БАЛКА'},LEFT:{icon:'↙',title:'ВЛЕВО!',tip:'УКЛОНИСЬ ОТ УДАРА'},RIGHT:{icon:'↘',title:'ВПРАВО!',tip:'УКЛОНИСЬ ОТ УДАРА'},JUMP:{icon:'⬆',title:'ПРЫЖОК!',tip:'ПЕРЕПРЫГНИ ПРЕГРАДУ'},STEP:{icon:'🦵',title:'ВЫСОКОЕ КОЛЕНО!',tip:'ПЕРЕШАГНИ ПРЕГРАДУ'},JACK:{icon:'✳',title:'АРМЕЙСКИЙ ДЖАМП!',tip:'РАЗВЕДИ РУКИ И НОГИ'},JACK_LOW:{icon:'✳',title:'РУКИ В СТОРОНЫ!',tip:'ДЖАМП БЕЗ ПРЫЖКА: ШАГ И РУКИ'},FLAP:{icon:'〰',title:'МАХИ РУКАМИ!',tip:'УДЕРЖИ ПЛАНЕР'},PUNCH:{icon:'🥊',title:'УДАР!',tip:'РАЗБЕЙ ПРЕПЯТСТВИЕ'},BLOCK:{icon:'🛡',title:'БЛОК!',tip:'ЗАЩИТИСЬ'},RUN:{icon:'⚡',title:'БЕГИ!',tip:'ДЕРЖИ РИТМ'}};
+const settings={class:'assassin',jump:'yes',difficulty:'normal'};
+const game={mode:'MENU',clock:0,lives:3,score:0,combo:0,maxCombo:0,hits:0,events:[],idx:0,bossHp:100,stamina:100,armor:100,attackCooldown:0,pulse:0,cameraShake:0,actionName:'',actionAge:10,lastActionAt:-100,pace:0,scene:0,calibration:null,relics:0,stillTime:0,lastMove:0,travel:0,runUntil:0,misses:0,bossDefeated:false,impact:null,impactCount:0,reducedMotion:window.matchMedia("(prefers-reduced-motion: reduce)").matches};
+const phases=[{at:0,name:'ЗОВ ДЖУНГЛЕЙ',scene:0},{at:35,name:'ТРОПА К ХРАМУ',scene:1},{at:67,name:'ВОРОТА СОЛНЦА',scene:2},{at:91,name:'ЗАЛ ЛОВУШЕК',scene:3},{at:114,name:'КАМЕННЫЙ СТРАЖ',scene:4}];
+const totalTime=180;
+const cueDefs={STILL:{icon:'◉',title:'ЗАМРИ!',tip:'СТАТУЯ НАБЛЮДАЕТ'},DUCK:{icon:'⬇',title:'ПРИГНИСЬ!',tip:'ОБРУШИВАЮЩАЯСЯ БАЛКА'},LEFT:{icon:'↙',title:'ВЛЕВО!',tip:'УКЛОНИСЬ ОТ УДАРА'},RIGHT:{icon:'↘',title:'ВПРАВО!',tip:'УКЛОНИСЬ ОТ УДАРА'},JUMP:{icon:'⬆',title:'ПРЫЖОК!',tip:'ПЕРЕПРЫГНИ ПРЕГРАДУ'},STEP:{icon:'🦵',title:'ВЫСОКОЕ КОЛЕНО!',tip:'ПЕРЕШАГНИ ПРЕГРАДУ'},JACK:{icon:'✳',title:'АРМЕЙСКИЙ ДЖАМП!',tip:'РАЗВЕДИ РУКИ И НОГИ'},JACK_LOW:{icon:'✳',title:'РУКИ В СТОРОНЫ!',tip:'ДЖАМП БЕЗ ПРЫЖКА: ШАГ И РУКИ'},FLAP:{icon:'〰',title:'МАХИ РУКАМИ!',tip:'УДЕРЖИ ПЛАНЕР'},PUNCH:{icon:'🥊',title:'УДАР!',tip:'РАЗБЕЙ ПРЕПЯТСТВИЕ'},BLOCK:{icon:'🛡',title:'БЛОК!',tip:'ЗАЩИТИСЬ'},RUN:{icon:'⚡',title:'БЕГИ!',tip:'ДЕРЖИ РИТМ'}};
 const scripted=[
- [5,'DUCK'],[10,'STEP'],[15,'LEFT'],[20,'PUNCH'],[25,'RIGHT'],[30,'JACK'],
- [39,'DUCK'],[44,'STEP'],[49,'JUMP'],[54,'LEFT'],[59,'JACK'],[64,'RIGHT'],
+ [5,'DUCK'],[10,'JUMP'],[15,'LEFT'],[20,'PUNCH'],[22,'BLOCK'],[24,'PUNCH'],[26,'RIGHT'],[28,'PUNCH'],[32,'DUCK'],
+ [39,'DUCK'],[44,'STEP'],[49,'JUMP'],[58,'STILL'],[59,'JACK'],[64,'RIGHT'],
  [71,'FLAP'],[76,'LEFT'],[81,'FLAP'],[86,'RIGHT'],
  [95,'PUNCH'],[99,'DUCK'],[103,'STEP'],[107,'BLOCK'],[111,'PUNCH'],
  [119,'LEFT'],[124,'RIGHT'],[129,'DUCK'],[134,'PUNCH'],[139,'BLOCK'],[144,'LEFT'],[149,'PUNCH'],[154,'RIGHT'],[159,'DUCK'],[164,'PUNCH']
@@ -101,21 +109,28 @@ const sound={ac:null,interval:null,next:0,step:0,enabled:true};
 function initAudio(){if(!sound.ac){const A=window.AudioContext||window.webkitAudioContext;if(!A)return;sound.ac=new A()}sound.ac.resume().catch(()=>{});sound.next=sound.ac.currentTime+.07;sound.step=0;if(sound.interval)clearInterval(sound.interval);sound.interval=setInterval(scheduleMusic,65)}
 function osc(freq,dur,when,kind='sine',gain=.06,slide=0){if(!sound.ac||sound.ac.state!=='running')return;const o=sound.ac.createOscillator(),g=sound.ac.createGain();o.type=kind;o.frequency.setValueAtTime(Math.max(1,freq),when);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(1,freq+slide),when+dur);g.gain.setValueAtTime(Math.max(.0001,gain),when);g.gain.exponentialRampToValueAtTime(.0001,when+dur);o.connect(g);g.connect(sound.ac.destination);o.start(when);o.stop(when+dur+.01)}
 function noise(dur,when,gain=.02){if(!sound.ac||sound.ac.state!=='running')return;let len=Math.floor(sound.ac.sampleRate*dur),b=sound.ac.createBuffer(1,len,sound.ac.sampleRate),a=b.getChannelData(0);for(let i=0;i<len;i++)a[i]=(Math.random()*2-1)*Math.pow(1-i/len,2);let s=sound.ac.createBufferSource(),g=sound.ac.createGain();s.buffer=b;g.gain.value=gain;s.connect(g);g.connect(sound.ac.destination);s.start(when)}
-function scheduleMusic(){if(game.mode!=='RUN'||!sound.ac||sound.ac.state!=='running')return;const beat=60/128/2;while(sound.next<sound.ac.currentTime+.17){let step=sound.step%16,t=sound.next;if(step%4===0)osc(95,.14,t,'sine',.18,-78);if(step%8===4)noise(.08,t,.065);noise(.026,t,.009);const bass=[55,55,73.4,82.4][Math.floor(sound.step/16)%4];if(step%2===0)osc(bass,.17,t,'sawtooth',.024);if(step%4===2)osc(bass*2,.1,t,'triangle',.018);sound.next+=beat;sound.step++}}
+function scheduleMusic(){if(game.mode!=='RUN'||!sound.ac||sound.ac.state!=='running')return;const beat=60/128/2;while(sound.next<sound.ac.currentTime+.17){let step=sound.step%16,t=sound.next;if(step%4===0)osc(95,.14,t,'sine',.18,-78);if(step%8===4)noise(.08,t,.065);noise(.026,t,.009);const bass=[55,55,73.4,82.4][Math.floor(sound.step/16)%4];if(step%2===0)osc(bass,.17,t,'sawtooth',.024);if(step%4===2)osc(bass*2,.1,t,'triangle',.018);if(game.clock>=18&&game.clock<29&&step%2===0)osc([220,261.6,293.7,329.6][step%4],.09,t,'triangle',.025);if(step===15&&game.clock>=15)noise(.06,t,.03);sound.next+=beat;sound.step++}}
 function sfx(ok){if(!sound.ac)return;let t=sound.ac.currentTime;if(ok){osc(570,.08,t,'triangle',.10,350);osc(820,.17,t+.05,'sine',.055,250)}else{osc(250,.19,t,'sawtooth',.14,-160);noise(.08,t,.04)}}
 function audioStop(){if(sound.interval){clearInterval(sound.interval);sound.interval=null}if(sound.ac&&sound.ac.state==='running')sound.ac.suspend().catch(()=>{})}
 function setMode(mode){game.mode=mode;$('menu').classList.toggle('hidden',mode!=='MENU');$('pause-menu').classList.toggle('hidden',mode!=='PAUSE');$('result-menu').classList.toggle('hidden',mode!=='RESULT');$('game-ui').classList.toggle('hidden',mode==='MENU');$('boss').classList.toggle('hidden',!(mode!=='MENU'&&game.clock>=114&&game.clock<totalTime));$('cue').classList.add('hidden');}
-function resetGame(){Object.assign(game,{clock:-3.2,lives:3,score:0,combo:0,maxCombo:0,hits:0,idx:0,bossHp:100,stamina:100,armor:100,cameraShake:0,actionName:'',actionAge:10,lastActionAt:-10,pace:0,scene:0});buildEvents();setMode('RUN');$('run-hint').textContent=cam.active?'● КАМЕРА ВКЛЮЧЕНА':'R — БЕГ НА МЕСТЕ / РИТМ';initAudio();drawHUD();}
+function resetGame(){Object.assign(game,{clock:-3.2,relics:0,stillTime:0,lastMove:0,travel:0,runUntil:0,misses:0,bossDefeated:false,impact:null,impactCount:0,lives:3,score:0,combo:0,maxCombo:0,hits:0,idx:0,bossHp:100,stamina:100,armor:100,cameraShake:0,actionName:'',actionAge:10,lastActionAt:-10,pace:0,scene:0});cam.stepSide=0;cam.airborne=false;cam.motionSample=null;cam.stillValid=false;clearTimeout(notify.timeout);$('toast').classList.remove('show');buildEvents();setMode('RUN');$('run-hint').textContent=cam.active?'● КАМЕРА ВКЛЮЧЕНА':'R — БЕГ НА МЕСТЕ / РИТМ';initAudio();drawHUD();}
 function backToMenu(){audioStop();setMode('MENU');game.clock=0;}
 function pause(reason){if(game.mode!=='RUN')return;game.pausedReason=reason||'';$('pause-reason').textContent=reason||'Отдохни и продолжи, когда будешь готов.';audioStop();setMode('PAUSE');}
 function resume(){if(game.mode!=='PAUSE')return;setMode('RUN');initAudio();}
-function result(win){if(game.mode==='RESULT')return;audioStop();setMode('RESULT');$('result-label').textContent=win?'УРОВЕНЬ ПРОЙДЕН':'ПОПЫТКА ЗАВЕРШЕНА';$('result-title').textContent=win?'ПОБЕДА!':'GAME OVER';$('result-title').style.color=win?'#b8ff8b':'#ffb0b0';$('result-points').textContent=String(game.score).padStart(5,'0');$('result-hit').textContent=game.hits;$('result-combo').textContent=game.maxCombo;$('result-life').textContent=Math.max(0,game.lives);$('result-detail').textContent=`Класс: ${settings.class==='assassin'?'Ассасин':'Берсерк'}. ${win?'Каменный страж повержен!':'Попробуй другой ритм и подготовься к атакам.'} Это тестовая версия с игровыми кнопками и экспериментальной камерой.`;}
+function accuracy(){const resolved=game.hits+game.misses;return resolved?Math.round(game.hits/resolved*100):0}
+function result(){if(game.mode==='RESULT')return;audioStop();setMode('RESULT');
+ const acc=accuracy(),grade=acc>=90?'S':acc>=75?'A':acc>=55?'B':'C';
+ $('result-label').textContent='3 МИНУТЫ • ПРИКЛЮЧЕНИЕ ЗАВЕРШЕНО';$('result-title').textContent=`РАНГ ${grade}`;
+ $('result-title').style.color='#b8ff8b';$('result-points').textContent=String(game.score).padStart(5,'0');
+ $('result-hit').textContent=game.hits;$('result-combo').textContent=game.maxCombo;$('result-life').textContent=acc+'%';
+ $('result-detail').textContent=`${game.bossDefeated?'Каменный страж повержен!':'Ты добрался до выхода. Страж ждёт реванша.'} Артефакты: ${game.relics}. Попадания: ${game.hits} из ${game.events.length}. Промахи: ${game.misses}. ${cam.active?'Режим камеры':'Кнопочный режим'}.`;
+}
 function notify(msg,color='#fff'){let t=$('toast');t.textContent=msg;t.style.color=color;t.classList.add('show');clearTimeout(notify.timeout);notify.timeout=setTimeout(()=>t.classList.remove('show'),650)}
 function currentEvent(){return game.events.find(e=>!e.done&&!e.missed)}
 function nearestTimedEvent(){return game.events.find(e=>!e.done&&!e.missed&&game.clock>=e.at-(settings.difficulty==='easy'?3.25:2.9)&&game.clock<=e.at+(settings.difficulty==='easy'?1.1:.62))}
-function handleAction(type,src='manual'){if(game.mode!=='RUN'||game.clock<0)return;if(src==='camera'&&cam.enabled&&!cam.visible)return;const now=performance.now();if(type==='RUN'){game.pace=Math.min(1,game.pace+.26);game.score+=2;return}if(now-game.lastActionAt<180)return;game.lastActionAt=now;game.actionName=type;game.actionAge=0;game.pulse=1;
+function handleAction(type,src='manual'){if(game.mode!=='RUN'||game.clock<0)return;if(src==='camera'&&cam.enabled&&!cam.visible)return;const now=performance.now();game.lastMove=now;if(freezeActive())return;if(type==='RUN'){game.runUntil=now+700;return}if(now-game.lastActionAt<180)return;game.lastActionAt=now;game.actionName=type;game.actionAge=0;game.pulse=1;
  let e=nearestTimedEvent();if(!e)return;let valid=type===e.type || (e.type==='STEP'&&type==='JUMP') || (e.type==='PUNCH'&&(type==='PUNCH_L'||type==='PUNCH_R')) || (e.type==='JACK_LOW'&&type==='JACK') || (e.phase==='boss'&&e.type==='BLOCK'&&type==='LEFT'&&settings.class==='assassin');
- if(valid&&game.clock>=e.at-(settings.difficulty==='easy'?1.8:1.35)&&game.clock<=e.at+(settings.difficulty==='easy'?1.1:.62)){e.done=true;game.combo++;game.maxCombo=Math.max(game.maxCombo,game.combo);game.hits++;game.score+=100+Math.min(game.combo,15)*12;game.pace=Math.min(1,game.pace+.1);sfx(true);notify(game.combo>=5?`⚡ КОМБО ×${game.combo}`:'Идеально! +100','#caff8e');if(e.phase==='boss')hitBoss(e,type);drawHUD();}else if(game.clock<e.at-(settings.difficulty==='easy'?1.8:1.35)){notify('ЕЩЁ РАНО','#ffe6b0')}else{notify('ДРУГОЕ ДВИЖЕНИЕ','#ffe6b0')}}
+ if(valid&&game.clock>=e.at-(settings.difficulty==='easy'?1.8:1.35)&&game.clock<=e.at+(settings.difficulty==='easy'?1.1:.62)){e.done=true;game.combo++;game.maxCombo=Math.max(game.maxCombo,game.combo);game.hits++;if(['LEFT','RIGHT','JUMP','STEP'].includes(e.type)){game.relics++;game.score+=50;}game.score+=100+Math.min(game.combo,15)*12;sfx(true);if(type.startsWith('PUNCH'))comicImpact();notify(game.combo>=5?`⚡ КОМБО ×${game.combo}`:'Идеально! +100','#caff8e');if(e.phase==='boss')hitBoss(e,type);drawHUD();}else if(game.clock<e.at-(settings.difficulty==='easy'?1.8:1.35)){notify('ЕЩЁ РАНО','#ffe6b0')}else{notify('ДРУГОЕ ДВИЖЕНИЕ','#ffe6b0')}}
 function hitBoss(e,type){if(settings.class==='assassin'){
  if(['LEFT','RIGHT','DUCK','BLOCK'].includes(e.type)){game.stamina=Math.max(0,game.stamina-35);if(game.stamina===0){game.bossHp=Math.max(0,game.bossHp-29);game.stamina=100;notify('⚡ ГОЛЕМ ИЗМОТАН! −29 HP','#caff8e');}}
  else if(e.type==='PUNCH'){game.bossHp=Math.max(0,game.bossHp-14)}
@@ -124,17 +139,19 @@ function hitBoss(e,type){if(settings.class==='assassin'){
  else if(e.type==='DUCK'||e.type==='STEP'){game.armor=Math.max(0,game.armor-19);game.bossHp=Math.max(0,game.bossHp-10)}
  else game.bossHp=Math.max(0,game.bossHp-8);
  }
- game.cameraShake=.8;if(game.bossHp<=0){game.score+=1500;setTimeout(()=>{if(game.mode==='RUN')result(true)},1000)}}
-function missEvent(e){e.missed=true;game.combo=0;game.lives--;game.cameraShake=1.2;sfx(false);notify('💥 ПРОПУСК! −1 ♥','#ff989f');drawHUD();if(game.lives<=0)setTimeout(()=>{if(game.mode==='RUN')result(false)},380)}
-function drawHUD(){let lives=Math.max(0,game.lives);$('hearts').textContent='♥ '.repeat(lives)+'♡ '.repeat(3-lives);$('score').textContent=String(game.score).padStart(5,'0');$('combo').textContent='×'+game.combo;$('progress').style.width=`${Math.min(100,Math.max(0,game.clock/totalTime*100))}%`;$('boss-hp').style.width=`${Math.max(0,game.bossHp)}%`;$('boss-meta').textContent=settings.class==='assassin'?`ВЫНОСЛИВОСТЬ ${Math.ceil(game.stamina)}%`:`БРОНЯ ${Math.ceil(game.armor)}%`;
-let p=phases.filter(p=>game.clock>=p.at).at(-1)||phases[0];$('zone').textContent=p.name;$('subhead').textContent=p.scene===2?'✦ ПЛАНЕР: МАХИ РУКАМИ':p.scene===4?`⚔ ${settings.class==='assassin'?'ИЗМОТАЙ ВРАГА':'РАЗБЕЙ БРОНЮ'}`:'⚡ БЕГ НА МЕСТЕ — БОНУС ЗА РИТМ';$('boss').classList.toggle('hidden',game.clock<114||game.mode!=='RUN');
-const e=nearestTimedEvent();if(game.clock>=0&&e){let d=cueDefs[e.type];$('cue').classList.remove('hidden');$('cue-icon').textContent=d.icon;$('cue-title').textContent=d.title;$('cue-instruction').textContent=e.phase==='boss'?'КАМЕННЫЙ СТРАЖ АТАКУЕТ':d.tip;$('cue-fill').style.width=`${Math.max(0,Math.min(100,(e.at+(settings.difficulty==='easy'?1.1:.62)-game.clock)/(settings.difficulty==='easy'?4.35:3.5)*100))}%`;}else $('cue').classList.add('hidden')}
+ game.cameraShake=.45;if(game.bossHp<=0&&!game.bossDefeated){game.bossDefeated=true;game.score+=1500;notify('СТРАЖ ПОВЕРЖЕН! +1500','#ffe29b')}}
+function missEvent(e){e.missed=true;game.misses++;game.combo=0;game.score=Math.max(0,game.score-40);game.cameraShake=.3;sfx(false);notify('ПРОМАХ · −40 · ПРОДОЛЖАЙ','#ffbba3');drawHUD()}
+function drawHUD(){$('relic-count').textContent='♦ '+game.relics;$('hearts').textContent=game.hits+game.misses?accuracy()+'%':'—';$('score').textContent=String(game.score).padStart(5,'0');$('combo').textContent='×'+game.combo;$('progress').style.width=`${Math.min(100,Math.max(0,game.clock/totalTime*100))}%`;$('boss-hp').style.width=`${Math.max(0,game.bossHp)}%`;$('boss-meta').textContent=settings.class==='assassin'?`ВЫНОСЛИВОСТЬ ${Math.ceil(game.stamina)}%`:`БРОНЯ ${Math.ceil(game.armor)}%`;
+let p=phases.filter(p=>game.clock>=p.at).at(-1)||phases[0];$('zone').textContent=game.clock>=18&&game.clock<29?'СТРАЖ ВОРОТ':game.travel*4.1>=150&&game.travel*4.1<=210?'МОСТ НАД ПРОПАСТЬЮ':p.name;$('subhead').textContent=p.scene===2?'✦ ПЛАНЕР: МАХИ РУКАМИ':p.scene===4?`⚔ ${settings.class==='assassin'?'ИЗМОТАЙ ВРАГА':'РАЗБЕЙ БРОНЮ'}`:'⚡ БЕГ НА МЕСТЕ ДВИГАЕТ МИР';$('boss').classList.toggle('hidden',game.clock<114||game.mode!=='RUN'||game.bossDefeated);$('run-hint').textContent=`${Math.floor(Math.ceil(Math.max(0,totalTime-game.clock))/60)}:${String(Math.ceil(Math.max(0,totalTime-game.clock))%60).padStart(2,'0')} · ${game.pace>.15?'⚡ ДВИГАЕМСЯ':'БЕГИ НА МЕСТЕ · R / КНОПКА БЕГ'}`;
+const e=nearestTimedEvent();if(game.clock>=0&&e){let d=cueDefs[e.type];$('cue').classList.remove('hidden');$('cue-icon').textContent=d.icon;$('cue-title').textContent=d.title;$('cue-instruction').textContent=e.phase==='boss'?'КАМЕННЫЙ СТРАЖ АТАКУЕТ':d.tip;$('cue-fill').style.width=`${Math.max(0,Math.min(100,(e.at+(settings.difficulty==='easy'?1.1:.62)-game.clock)/(settings.difficulty==='easy'?4.35:3.5)*100))}%`;}else $('cue').classList.add('hidden');drawStillCue();}
 for(let b of document.querySelectorAll('[data-kind]'))b.addEventListener('click',()=>{settings[b.dataset.kind]=b.dataset.val;for(let x of document.querySelectorAll(`[data-kind="${b.dataset.kind}"]`))x.classList.toggle('active',x===b);$('jump-label').textContent=settings.jump==='yes'?'ПРЫЖОК':'ШАГ';$('jack-label').textContent=settings.jump==='yes'?'ДЖЕК':'РУКИ'});
+$('tv-mode').onclick=()=>{document.body.classList.add('tv');$('exit-tv').classList.remove('hidden')};$('exit-tv').onclick=()=>{document.body.classList.remove('tv');$('exit-tv').classList.add('hidden')};
 $('start').onclick=resetGame;$('again').onclick=resetGame;$('resume').onclick=resume;$('pause-btn').onclick=()=>game.mode==='RUN'?pause():game.mode==='PAUSE'?resume():null;$('back-menu').onclick=backToMenu;$('restart-menu').onclick=backToMenu;
 for(let btn of document.querySelectorAll('[data-act]')){btn.addEventListener('pointerdown',ev=>{ev.preventDefault();btn.classList.add('down');handleAction(btn.dataset.act);setTimeout(()=>btn.classList.remove('down'),160)})}
 const keyMap={'ArrowLeft':'LEFT','ArrowRight':'RIGHT','ArrowDown':'DUCK','ArrowUp':'JUMP',' ':'PUNCH','KeyW':'STEP','KeyJ':'JACK','KeyF':'FLAP','KeyB':'BLOCK','KeyR':'RUN','KeyA':'LEFT','KeyD':'RIGHT','KeyS':'DUCK'};
 window.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName))return;if(e.code==='Escape'||e.code==='KeyP'){e.preventDefault();game.mode==='RUN'?pause():game.mode==='PAUSE'?resume():null;return}let typ=keyMap[e.code]||keyMap[e.key];if(typ){e.preventDefault();if(e.repeat&&typ!=='RUN')return;handleAction(typ)}});
 let lostCtx=false;window.addEventListener('blur',()=>{if(game.mode==='RUN'&&!cam.active)pause('Окно потеряло фокус — игра поставлена на паузу.')});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pause('Игра свёрнута. Вернись и продолжи тренировку.');});
 // Procedural pseudo-3D scenery (all visuals are original shapes, no external assets)
 function lerp(a,b,t){return a+(b-a)*t}function rect(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(x,y,w,h)}function line(x1,y1,x2,y2,color,w=1){ctx.strokeStyle=color;ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke()}
 function poly(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(...points[0]);for(let i=1;i<points.length;i++)ctx.lineTo(...points[i]);ctx.closePath();ctx.fill()}
@@ -149,7 +166,7 @@ poly([[0,H],[0,330],[W/2-118,280],[W/2-300,H]],lav?'#4c252b':'#1f4854');poly([[W
 for(let k=0;k<12;k++){let y=(k*117 +t*72*(scene===2?1.9:1))%720;let x=60+Math.sin(k*9+t*.5)*55;line(x,y,x+70,y-25,river,2);line(W-x,y,W-x-70,y-25,river,2)}
 // 3D road
 poly([[W/2-48,267],[W/2+48,267],[1120,H],[160,H]],scene===3?'#344654':scene===1?'#3f3c43':'#364455');poly([[W/2-45,267],[W/2+45,267],[1070,H],[210,H]],scene===1?'#514b49':'#455062');
-let flow=(t*1.55)%1;
+let flow=(t*.32)%1;
 for(let i=0;i<22;i++){let z=((i/22-flow+1)%1),p=project(z,0);let ww=lerp(5,800,1-z);let alpha=1-z;line(W/2-ww/2,p.y,W/2+ww/2,p.y,`rgba(176,208,226,${.05+alpha*.20})`,lerp(1,6,alpha));}
 for(let i=0;i<17;i++){let z=((i/17-flow+1)%1),p=project(z,0);line(W/2,p.y,W/2,p.y+Math.max(5,p.s*54),`rgba(255,218,134,${.05+(1-z)*.5})`,Math.max(2,p.s*8));}
 // pillars to the side, temples in foreground
@@ -168,11 +185,66 @@ else if(ev.type==='FLAP'){poly([[p.x-180*s,p.y-50*s],[p.x,p.y-140*s],[p.x+180*s,
 else if(ev.type==='JACK'){glow(p.x,p.y-70*s,130*s,'#9cf7b877');line(p.x-60*s,p.y-75*s,p.x+60*s,p.y-75*s,'#ceff91',16*s)}
 else{rect(p.x-90*s,p.y-50*s,180*s,54*s,'#dc9864');rect(p.x-103*s,p.y-65*s,206*s,16*s,'#ffd278')}
 ctx.restore()}
-function drawForearms(t){let bob=Math.sin(t*14)*12*(.5+game.pace*.5),pulse=Math.max(0,1-game.actionAge*3);ctx.save();ctx.globalAlpha=.8;poly([[100,720],[350,720],[425,640+bob],[380,603+bob],[280,635+bob]],'#182c3d');poly([[1180,720],[930,720],[855,640-bob],[900,603-bob],[1000,635-bob]],'#172b3c');if(pulse>0){glow(game.actionName==='LEFT'?350:game.actionName==='RIGHT'?930:640,535,230*pulse,settings.class==='assassin'?'#57eaff77':'#ffd07788')}ctx.restore()}
-function drawScene(time){ctx.clearRect(0,0,W,H);let t=Math.max(0,time),scene=time<0?0:(phases.filter(p=>t>=p.at).at(-1)||phases[0]).scene,shake=game.cameraShake*10,camX=Math.sin(t*.82)*14+Math.sin(t*14)*game.pace*7;ctx.save();ctx.translate(camX+(Math.random()-.5)*shake,Math.sin(t*15)*game.pace*2+(Math.random()-.5)*shake);terrain(t,scene);if(scene===4)drawBoss(t);else drawObstacles(t);drawForearms(t);ctx.restore();
-let v=ctx.createRadialGradient(640,350,110,640,350,780);v.addColorStop(0,'#00000000');v.addColorStop(1,'#0000008a');ctx.fillStyle=v;ctx.fillRect(0,0,W,H);if(game.mode==='RUN'&&time<0){ctx.textAlign='center';ctx.font='900 142px system-ui';ctx.fillStyle='#fff3ba';ctx.shadowColor='#ffb456';ctx.shadowBlur=40;ctx.fillText(String(Math.ceil(-time)),W/2,390);ctx.shadowBlur=0;ctx.font='bold 24px system-ui';ctx.fillText('ПРИГОТОВЬСЯ!',W/2,450)}if(scene===4&&time>=114){ctx.textAlign='center';ctx.fillStyle='#ffdfb7';ctx.font='bold 18px system-ui';ctx.fillText(settings.class==='assassin'?'УКЛОНЯЙСЯ → ИЗМАТЫВАЙ':'АТАКУЙ → ЛОМАЙ БРОНЮ',W/2,640)}}
+function drawForearms(t){let bob=Math.sin(t*14)*12*game.pace,pulse=Math.max(0,1-game.actionAge*3);ctx.save();ctx.globalAlpha=.8;poly([[100,720],[350,720],[425,640+bob],[380,603+bob],[280,635+bob]],'#182c3d');poly([[1180,720],[930,720],[855,640-bob],[900,603-bob],[1000,635-bob]],'#172b3c');if(pulse>0){glow(game.actionName==='LEFT'?350:game.actionName==='RIGHT'?930:640,535,230*pulse,settings.class==='assassin'?'#57eaff77':'#ffd07788')}ctx.restore()}
+function drawScene(time){ctx.clearRect(0,0,W,H);let t=Math.max(0,time),scene=time<0?0:(phases.filter(p=>t>=p.at).at(-1)||phases[0]).scene,shake=game.reducedMotion?0:game.cameraShake*7,camX=game.reducedMotion?0:Math.sin(game.travel*1.2)*6+Math.sin(game.travel*14)*game.pace*3;ctx.save();ctx.translate(camX+Math.sin(t*37)*shake,Math.sin(t*15)*game.pace*2+Math.sin(t*29)*shake);if(templeWorld){templeWorld.render({time:t,travel:game.travel,pace:game.pace,action:game.actionName,age:game.actionAge,event:nearestTimedEvent(),reduced:game.reducedMotion,menu:game.mode==='MENU',hits:game.impactCount,freeze:freezeActive()});if(scene===4&&!game.bossDefeated)drawBoss(t);}else{terrain(game.mode==='MENU'?t:game.travel,scene);drawJungle(game.mode==='MENU'?t:game.travel,scene);if(scene===4&&!game.bossDefeated)drawBoss(t);else drawObstacles(t);}ctx.restore();
+let v=ctx.createRadialGradient(640,350,110,640,350,780);v.addColorStop(0,'#00000000');v.addColorStop(1,'#0000008a');ctx.fillStyle=v;ctx.fillRect(0,0,W,H);if(game.mode==='RUN'&&time<0){ctx.textAlign='center';ctx.font='900 142px system-ui';ctx.fillStyle='#fff3ba';ctx.shadowColor='#ffb456';ctx.shadowBlur=40;ctx.fillText(String(Math.ceil(-time)),W/2,390);ctx.shadowBlur=0;ctx.font='bold 24px system-ui';ctx.fillText('ПРИГОТОВЬСЯ!',W/2,450)}if(scene===4&&time>=114){ctx.textAlign='center';ctx.fillStyle='#ffdfb7';ctx.font='bold 18px system-ui';ctx.fillText(game.bossDefeated?'ПУТЬ СВОБОДЕН · К ФИНИШУ!':settings.class==='assassin'?'УКЛОНЯЙСЯ → ИЗМАТЫВАЙ':'АТАКУЙ → ЛОМАЙ БРОНЮ',W/2,640)}drawComic();}
+function comicImpact(){
+ game.impact={at:performance.now(),label:['БАМ!','БАХ!','БУМ!'][game.impactCount++%3],x:W/2+(game.impactCount%2?90:-90),y:340};
+ game.cameraShake=.45;
+ if(sound.ac){const t=sound.ac.currentTime;noise(.11,t,.1);osc(140,.12,t,'triangle',.15,-90);}
+}
+function drawComic(){
+ const hit=game.impact;if(!hit)return;const age=(performance.now()-hit.at)/1000;
+ if(age>.48){game.impact=null;return;}
+ const fade=Math.min(1,(.48-age)*6),scale=game.reducedMotion?1:1+.18*Math.exp(-age*15)*Math.sin(age*35);
+ ctx.save();ctx.translate(hit.x,hit.y);ctx.rotate(-.1);ctx.scale(scale,scale);ctx.globalAlpha=fade;
+ ctx.beginPath();for(let i=0;i<24;i++){const a=i/24*TWO,r=i%2?92:145;const x=Math.cos(a)*r,y=Math.sin(a)*r*.65;i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath();ctx.fillStyle='#ffd34e';ctx.strokeStyle='#15182b';ctx.lineWidth=8;ctx.fill();ctx.stroke();
+ ctx.font='italic 1000 66px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=9;ctx.strokeText(hit.label,0,0);ctx.fillStyle='#fff9db';ctx.fillText(hit.label,0,0);ctx.restore();
+}
+function drawJungle(t,scene){
+ if(scene>2)return;
+ for(const side of [-1,1])for(let i=0;i<8;i++){
+  const z=(i/8-(t*.16)%1+1)%1,p=project(z,side*3.7),h=Math.min(650,240*p.s),w=18*p.s;
+  line(p.x,p.y,p.x+side*30*p.s,p.y-h,'#172e28',w);
+  for(let j=0;j<4;j++){let y=p.y-h+j*35*p.s;poly([[p.x,y],[p.x-side*(100+j*12)*p.s,y-25*p.s],[p.x-side*30*p.s,y+30*p.s]],j%2?'#347044':'#1a503c');}
+ }
+ if(scene===2){ctx.save();ctx.globalAlpha=.7;glow(640,270,180,'#f9d98866');ctx.restore();}
+}
+function freezeActive(){return game.clock>=54&&game.clock<58}
+function updateStill(dt,now){
+ const e=game.events.find(e=>e.type==='STILL');if(!e||e.done||e.missed)return;
+ if(freezeActive()){
+  const visible=cam.active?cam.visible&&cam.base&&cam.stillValid&&now-cam.lastSeen<250:true;
+  const stationary=visible&&now-game.lastMove>450;
+  if(game.clock>=54.8)game.stillTime=stationary?game.stillTime+dt:0;
+ }else if(game.clock>=58){
+  game.runUntil=0;
+  if(game.stillTime>=2.2){e.done=true;game.hits++;game.combo++;game.maxCombo=Math.max(game.maxCombo,game.combo);game.score+=300;game.relics++;notify('СТАТУЯ УСНУЛА · ♦ +1 · +300','#b9ffb3');sfx(true);}
+  else missEvent(e);
+ }
+}
+function drawStillCue(){
+ if(game.clock<52||game.clock>=58)return;
+ const active=freezeActive();$('cue').classList.remove('hidden');$('cue-icon').textContent='◉';
+ $('cue-title').textContent=active?'ЗАМРИ!':'ПРИГОТОВЬСЯ ЗАМЕРЕТЬ';
+ $('cue-instruction').textContent=cam.active&&!cam.visible?'КАМЕРА НЕ ВИДИТ ИГРОКА':active?`СТОЙ НЕПОДВИЖНО · ${Math.min(100,Math.round(game.stillTime/2.2*100))}%`:'СТАТУЯ ОТКРЫВАЕТ ГЛАЗА';
+ $('cue-fill').style.width=`${active?Math.min(100,game.stillTime/2.2*100):0}%`;
+ $('zone').textContent='ИСПЫТАНИЕ ТИШИНЫ';$('subhead').textContent=active?'СТАТУЯ НАБЛЮДАЕТ · НЕ ДВИГАЙСЯ':'ЗАКАНЧИВАЙ БЕГ · СКОРО ОСТАНОВКА';if(active)$('run-hint').textContent='УДЕРЖИВАЙ НЕПОДВИЖНОСТЬ · ПОСЛЕ СИГНАЛА ПРОДОЛЖИМ';
+}
+function trackStillness(l,now){
+ const ids=[11,12,23,24,15,16,25,26],points=ids.map(i=>refPoint(l,i));
+ cam.stillValid=points.every(Boolean);
+ if(!cam.stillValid){cam.motionSample=null;return;}
+ const prev=cam.motionSample;
+ if(prev&&now-prev.at>0&&now-prev.at<300){
+  const delta=points.reduce((sum,p,i)=>sum+Math.hypot(p.x-prev.points[i].x,p.y-prev.points[i].y),0)/points.length;
+  const torso=Math.max(.1,Math.abs(points[2].y-points[0].y));
+  if(delta/torso/((now-prev.at)/1000)>.18)game.lastMove=now;
+ }else cam.stillValid=false;
+ cam.motionSample={at:now,points:points.map(p=>({x:p.x,y:p.y}))};
+}
 let lastFrame=performance.now();function frame(now){let dt=Math.min(.04,(now-lastFrame)/1000);lastFrame=now;if(game.mode==='RUN'){
-if(game.clock<totalTime){game.clock+=dt;game.actionAge+=dt;game.cameraShake=Math.max(0,game.cameraShake-dt*3);game.pace=Math.max(.08,game.pace-dt*.07);if(game.clock>0){for(let e of game.events)if(!e.done&&!e.missed&&game.clock>e.at+(settings.difficulty==='easy'?1.12:.66))missEvent(e);if(game.mode==='RUN'&&game.clock>=totalTime)result(game.bossHp<=0)}}else result(game.bossHp<=0);
+if(game.clock<totalTime){game.clock+=dt;game.actionAge+=dt;game.cameraShake=Math.max(0,game.cameraShake-dt*3);updateStill(dt,now);const target=!freezeActive()&&now<game.runUntil?1:0;game.pace+=(target-game.pace)*(1-Math.exp(-dt*(target?5:4)));if(game.pace<.001)game.pace=0;game.travel+=dt*game.pace;if(game.clock>0){for(let e of game.events)if(!e.done&&!e.missed&&game.clock>e.at+(settings.difficulty==='easy'?1.12:.66))missEvent(e);if(game.mode==='RUN'&&game.clock>=totalTime)result()}}else result();
  drawHUD()}
 if(game.mode==='MENU')game.clock+=dt*.4;drawScene(game.clock);requestAnimationFrame(frame)}requestAnimationFrame(frame);
 // Camera / ML: optional, never uploads camera images. Remote model and code are loaded only on explicit activation.
@@ -182,10 +254,19 @@ function refPoint(l,i){let p=l[i];return p&&((p.visibility??1)>.45)?p:null}
 function angle(a,b,c){if(!a||!b||!c)return 180;let ax=a.x-b.x,ay=a.y-b.y,cx=c.x-b.x,cy=c.y-b.y,d=(ax*cx+ay*cy)/(Math.hypot(ax,ay)*Math.hypot(cx,cy)+1e-6);return Math.acos(clamp(d,-1,1))*180/Math.PI}
 function camGesture(type,cool=650){let n=performance.now();if(n-(cam.lastGesture[type]||0)<cool)return;cam.lastGesture[type]=n;handleAction(type,'camera')}
 function processPose(l,now){let ls=refPoint(l,11),rs=refPoint(l,12),lh=refPoint(l,23),rh=refPoint(l,24),lk=refPoint(l,25),rk=refPoint(l,26),la=refPoint(l,27),ra=refPoint(l,28),lw=refPoint(l,15),rw=refPoint(l,16);if(!ls||!rs||!lh||!rh){cam.visible=false;return}
-cam.visible=true;cam.lastSeen=now;let shX=(ls.x+rs.x)/2,hipX=(lh.x+rh.x)/2,shY=(ls.y+rs.y)/2,hipY=(lh.y+rh.y)/2,torso=Math.max(.08,hipY-shY),width=Math.max(.08,Math.abs(ls.x-rs.x));let lean=(shX-hipX)/torso;
+cam.visible=true;cam.lastSeen=now;trackStillness(l,now);let shX=(ls.x+rs.x)/2,hipX=(lh.x+rh.x)/2,shY=(ls.y+rs.y)/2,hipY=(lh.y+rh.y)/2,torso=Math.max(.08,hipY-shY),width=Math.max(.08,Math.abs(ls.x-rs.x));let lean=(shX-hipX)/torso;
 let bent=Math.min(angle(lh,lk,la),angle(rh,rk,ra))<125;
 if(!cam.base){cam.history.push({shY,hipY,torso,lean});if(cam.history.length>=25){let h=cam.history;cam.base={shY:h.reduce((s,v)=>s+v.shY,0)/h.length,hipY:h.reduce((s,v)=>s+v.hipY,0)/h.length};cam.history=[];cameraStatus('КАМЕРА: ГОТОВА ✓')}else cameraStatus('КАМЕРА: СТОЙ РОВНО');return}
-let b=cam.base;
+let b=cam.base;if(freezeActive())return;
+if(la&&ra&&lk&&rk){
+ const lifted=Math.max(la.y,ra.y)<b.hipY+(b.hipY-b.shY)*1.2;
+ const rise=b.hipY-hipY;
+ if(rise>.055&&lifted&&!cam.airborne){camGesture('JUMP',850);cam.airborne=true;}
+ if(rise<.025)cam.airborne=false;
+ const delta=lk.y-rk.y,side=delta>.025?1:delta<-.025?-1:0;
+ if(side&&side!==cam.stepSide){cam.stepSide=side;camGesture('RUN',180);}
+}
+
 if(bent||(shY-b.shY)>.09){camGesture('DUCK',1000)}
 // Mirror from self-facing phone: as the player sees their mirror image, swap raw x directions.
 if(lean>.31){camGesture('LEFT',750)}else if(lean<-.31){camGesture('RIGHT',750)}
@@ -203,7 +284,7 @@ async function startCamera(){if(cam.active)return;let video=$('cam-view');cam.en
  let vision=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs');
  let resolver=await vision.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm');
  cam.landmarker=await vision.PoseLandmarker.createFromOptions(resolver,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',delegate:'CPU'},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.55,minPosePresenceConfidence:.55,minTrackingConfidence:.5});
- cam.active=true;cam.base=null;cam.history=[];cam.lastSeen=performance.now();cam.lastSample=0;cam.attempt++;$('camera-menu').textContent='✓ КАМЕРА ВКЛЮЧЕНА';$('camera-menu').classList.add('active');cameraStatus('КАМЕРА: СТОЙ РОВНО');$('run-hint').textContent='● РАСПОЗНАВАНИЕ ДВИЖЕНИЙ ВКЛЮЧЕНО';cameraLoop(cam.attempt);
+ cam.active=true;cam.stepSide=0;cam.airborne=false;cam.base=null;cam.history=[];cam.lastSeen=performance.now();cam.lastSample=0;cam.attempt++;$('camera-menu').textContent='✓ КАМЕРА ВКЛЮЧЕНА';$('camera-menu').classList.add('active');cameraStatus('КАМЕРА: СТОЙ РОВНО');$('run-hint').textContent='● РАСПОЗНАВАНИЕ ДВИЖЕНИЙ ВКЛЮЧЕНО';cameraLoop(cam.attempt);
  }catch(e){console.error(e);cameraStatus('КАМЕРА: '+(e.message||'ошибка'));if(cam.stream){cam.stream.getTracks().forEach(t=>t.stop());cam.stream=null}cam.active=false;cam.enabled=false;video.classList.add('hidden');alert('Не удалось запустить распознавание: '+(e.message||e)+'\n\nИграть кнопками можно без камеры.')}}
 function cameraLoop(attempt){if(!cam.active||attempt!==cam.attempt)return;let n=performance.now();if(n-cam.lastSample>85&&cam.video?.readyState>=2){cam.lastSample=n;try{let r=cam.landmarker.detectForVideo(cam.video,n);if(r.landmarks?.[0])processPose(r.landmarks[0],n);else cam.visible=false}catch(e){console.warn('Camera frame',e)}}
 if(game.mode==='RUN'&&game.clock>0&&cam.base&&!cam.visible&&n-cam.lastSeen>1600){pause('Камера потеряла игрока. Проверь положение телефона и нажми «Продолжить».');cameraStatus('КАМЕРА: НЕ ВИЖУ ИГРОКА')}
