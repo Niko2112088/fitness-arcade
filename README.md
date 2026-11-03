@@ -29,3 +29,9 @@ CHROMIUM_PATH=/usr/bin/chromium node tests/run.cjs
 ```
 
 Omit `CHROMIUM_PATH` to use Playwright's own browser. `TEST_URL` overrides the local URL. Covers nonfatal misses, complete-session timing, movement start/stop, punch feedback, boss defeat, result/reset, pause and synthetic camera input. Produces impact/result/mobile screenshots.
+
+## 3D visual slice (0.3)
+
+The route now renders using a vendored Three.js r160.1 build (MIT; license in `vendor/THREE-LICENSE.txt`). Original procedural stone, canopy, gateway, hanging vines, torchlit walls and a curved centreline replace the flat runway. Camera movement reflects duck/jump/dodge inputs. The first 30 seconds are the visual review slice; later gameplay and the existing 2D boss remain prototype material. No footage, brands or artwork from the reference videos are bundled.
+
+Run `node tests/scene.cjs` for separate WebGL smoke checks and jungle/gate/temple screenshots (system Chromium at `/usr/bin/chromium`). The gameplay regression intentionally stubs rendering after initial load to isolate game rules from software-GPU frame rate. Real iPhone performance, AirPlay and pose recognition remain unverified.
