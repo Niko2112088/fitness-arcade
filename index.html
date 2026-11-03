@@ -26,6 +26,7 @@ canvas{display:block;width:100%;height:100%;background:#10182a} .hidden{display:
 @media(max-height:560px) and (orientation:landscape){.menu-card .subtitle,.menu-card .tiny-note{display:none}.menu-card .settings{flex-wrap:nowrap;gap:5px;margin:6px 0}.menu-card .big-title{font-size:clamp(26px,5.6vw,40px);margin:3px 0}.menu-card .eyebrow{font-size:8px}.menu-card .setting-group{padding:4px}.menu-card .choice{padding:4px 6px;font-size:9px}.menu-card .primary{padding:8px 18px}.menu-card .secondary{padding:8px 12px}.menu-card{padding:5px}}
 @media(max-width:700px) and (orientation:portrait){.menu-card .subtitle,.menu-card .tiny-note,.menu-card .eyebrow{display:none}.menu-card .settings{margin:3px 0 5px;gap:4px}.menu-card .big-title{font-size:27px;margin:0}.menu-card .setting-group{padding:2px 4px}.menu-card .setting-label{font-size:7px;margin:0 0 2px}.menu-card .choice{font-size:8px;padding:3px 5px}.menu-card .primary{font-size:10px;padding:7px 9px}.menu-card .secondary{font-size:9px;padding:6px 8px}.menu-card .actions{gap:4px}.menu-card{padding:2px}.overlay{padding:2px}}
 body.tv #app{padding:0;gap:0}body.tv #shell{width:min(100vw,calc(100dvh * 16/9));border:0;border-radius:0}body.tv #control-area,body.tv #footnote{display:none}#exit-tv{position:fixed;right:10px;bottom:10px;z-index:20;background:#142334bf;border:1px solid #9ac5db42;border-radius:12px;padding:10px;color:white}body.tv .menu-card{max-height:95%;overflow:auto}
+#world3d{position:absolute;inset:0;width:100%;height:100%}#world{position:relative;background:transparent}#cue{top:76%;min-width:0}#cue-icon{font-size:28px}#cue-title{font-size:32px}#cue-instruction{font-size:11px}.top-ui{background:linear-gradient(#0718119c,transparent);padding:14px 20px}.brand-mini{letter-spacing:3px}#subhead{top:70px}.hearts{font-size:19px;color:#d3edb5}body.tv #exit-tv{opacity:.4}
 </style>
 </head>
 <body>
@@ -33,6 +34,7 @@ body.tv #app{padding:0;gap:0}body.tv #shell{width:min(100vw,calc(100dvh * 16/9))
 <div id="app">
   <div class="rotate-tip">↻ Для большого игрового экрана поверни телефон горизонтально</div>
   <div id="shell">
+    <canvas id="world3d" width="1280" height="720" aria-label="Трёхмерный маршрут"></canvas>
     <canvas id="world" width="1280" height="720" aria-label="Игровая сцена забега"></canvas>
     <div id="game-ui" class="hidden">
       <div class="top-ui">
@@ -80,11 +82,14 @@ body.tv #app{padding:0;gap:0}body.tv #shell{width:min(100vw,calc(100dvh * 16/9))
     <button data-act="BLOCK"><span>🛡</span>БЛОК <small>B</small></button>
     <button id="pause-btn"><span>Ⅱ</span>ПАУЗА</button>
   </div>
-  <div id="footnote">Прототип 0.2 • Забег 3:00 • Музыка синтезируется в браузере • Ничего не записывается и не отправляется</div>
+  <div id="footnote">Прототип 0.3 • 3D • Забег 3:00 • Музыка синтезируется в браузере • Ничего не записывается и не отправляется</div>
 </div>
+<script src="vendor/three.min.js"></script>
+<script src="world3d.js"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id), canvas=$('world'), ctx=canvas.getContext('2d');
+const templeWorld=window.createTempleWorld($('world3d'));if(!templeWorld)$('world3d').classList.add('hidden');
 const W=1280,H=720, TWO=Math.PI*2;
 const settings={class:'assassin',jump:'yes',difficulty:'normal'};
 const game={mode:'MENU',clock:0,lives:3,score:0,combo:0,maxCombo:0,hits:0,events:[],idx:0,bossHp:100,stamina:100,armor:100,attackCooldown:0,pulse:0,cameraShake:0,actionName:'',actionAge:10,lastActionAt:-100,pace:0,scene:0,calibration:null,travel:0,runUntil:0,misses:0,bossDefeated:false,impact:null,impactCount:0,reducedMotion:window.matchMedia("(prefers-reduced-motion: reduce)").matches};
@@ -92,7 +97,7 @@ const phases=[{at:0,name:'ЗОВ ДЖУНГЛЕЙ',scene:0},{at:35,name:'ТРО�
 const totalTime=180;
 const cueDefs={DUCK:{icon:'⬇',title:'ПРИГНИСЬ!',tip:'ОБРУШИВАЮЩАЯСЯ БАЛКА'},LEFT:{icon:'↙',title:'ВЛЕВО!',tip:'УКЛОНИСЬ ОТ УДАРА'},RIGHT:{icon:'↘',title:'ВПРАВО!',tip:'УКЛОНИСЬ ОТ УДАРА'},JUMP:{icon:'⬆',title:'ПРЫЖОК!',tip:'ПЕРЕПРЫГНИ ПРЕГРАДУ'},STEP:{icon:'🦵',title:'ВЫСОКОЕ КОЛЕНО!',tip:'ПЕРЕШАГНИ ПРЕГРАДУ'},JACK:{icon:'✳',title:'АРМЕЙСКИЙ ДЖАМП!',tip:'РАЗВЕДИ РУКИ И НОГИ'},JACK_LOW:{icon:'✳',title:'РУКИ В СТОРОНЫ!',tip:'ДЖАМП БЕЗ ПРЫЖКА: ШАГ И РУКИ'},FLAP:{icon:'〰',title:'МАХИ РУКАМИ!',tip:'УДЕРЖИ ПЛАНЕР'},PUNCH:{icon:'🥊',title:'УДАР!',tip:'РАЗБЕЙ ПРЕПЯТСТВИЕ'},BLOCK:{icon:'🛡',title:'БЛОК!',tip:'ЗАЩИТИСЬ'},RUN:{icon:'⚡',title:'БЕГИ!',tip:'ДЕРЖИ РИТМ'}};
 const scripted=[
- [5,'DUCK'],[10,'STEP'],[15,'LEFT'],[20,'PUNCH'],[25,'RIGHT'],[30,'JACK'],
+ [5,'DUCK'],[10,'JUMP'],[15,'LEFT'],[20,'PUNCH'],[25,'RIGHT'],[30,'DUCK'],
  [39,'DUCK'],[44,'STEP'],[49,'JUMP'],[54,'LEFT'],[59,'JACK'],[64,'RIGHT'],
  [71,'FLAP'],[76,'LEFT'],[81,'FLAP'],[86,'RIGHT'],
  [95,'PUNCH'],[99,'DUCK'],[103,'STEP'],[107,'BLOCK'],[111,'PUNCH'],
@@ -181,7 +186,7 @@ else if(ev.type==='JACK'){glow(p.x,p.y-70*s,130*s,'#9cf7b877');line(p.x-60*s,p.y
 else{rect(p.x-90*s,p.y-50*s,180*s,54*s,'#dc9864');rect(p.x-103*s,p.y-65*s,206*s,16*s,'#ffd278')}
 ctx.restore()}
 function drawForearms(t){let bob=Math.sin(t*14)*12*game.pace,pulse=Math.max(0,1-game.actionAge*3);ctx.save();ctx.globalAlpha=.8;poly([[100,720],[350,720],[425,640+bob],[380,603+bob],[280,635+bob]],'#182c3d');poly([[1180,720],[930,720],[855,640-bob],[900,603-bob],[1000,635-bob]],'#172b3c');if(pulse>0){glow(game.actionName==='LEFT'?350:game.actionName==='RIGHT'?930:640,535,230*pulse,settings.class==='assassin'?'#57eaff77':'#ffd07788')}ctx.restore()}
-function drawScene(time){ctx.clearRect(0,0,W,H);let t=Math.max(0,time),scene=time<0?0:(phases.filter(p=>t>=p.at).at(-1)||phases[0]).scene,shake=game.reducedMotion?0:game.cameraShake*7,camX=game.reducedMotion?0:Math.sin(game.travel*1.2)*6+Math.sin(game.travel*14)*game.pace*3;ctx.save();ctx.translate(camX+Math.sin(t*37)*shake,Math.sin(t*15)*game.pace*2+Math.sin(t*29)*shake);terrain(game.mode==='MENU'?t:game.travel,scene);drawJungle(game.mode==='MENU'?t:game.travel,scene);if(scene===4&&!game.bossDefeated)drawBoss(t);else drawObstacles(t);drawForearms(game.travel);ctx.restore();
+function drawScene(time){ctx.clearRect(0,0,W,H);let t=Math.max(0,time),scene=time<0?0:(phases.filter(p=>t>=p.at).at(-1)||phases[0]).scene,shake=game.reducedMotion?0:game.cameraShake*7,camX=game.reducedMotion?0:Math.sin(game.travel*1.2)*6+Math.sin(game.travel*14)*game.pace*3;ctx.save();ctx.translate(camX+Math.sin(t*37)*shake,Math.sin(t*15)*game.pace*2+Math.sin(t*29)*shake);if(templeWorld){templeWorld.render({time:t,travel:game.travel,pace:game.pace,action:game.actionName,age:game.actionAge,event:nearestTimedEvent(),reduced:game.reducedMotion,menu:game.mode==='MENU'});if(scene===4&&!game.bossDefeated)drawBoss(t);}else{terrain(game.mode==='MENU'?t:game.travel,scene);drawJungle(game.mode==='MENU'?t:game.travel,scene);if(scene===4&&!game.bossDefeated)drawBoss(t);else drawObstacles(t);}ctx.restore();
 let v=ctx.createRadialGradient(640,350,110,640,350,780);v.addColorStop(0,'#00000000');v.addColorStop(1,'#0000008a');ctx.fillStyle=v;ctx.fillRect(0,0,W,H);if(game.mode==='RUN'&&time<0){ctx.textAlign='center';ctx.font='900 142px system-ui';ctx.fillStyle='#fff3ba';ctx.shadowColor='#ffb456';ctx.shadowBlur=40;ctx.fillText(String(Math.ceil(-time)),W/2,390);ctx.shadowBlur=0;ctx.font='bold 24px system-ui';ctx.fillText('ПРИГОТОВЬСЯ!',W/2,450)}if(scene===4&&time>=114){ctx.textAlign='center';ctx.fillStyle='#ffdfb7';ctx.font='bold 18px system-ui';ctx.fillText(game.bossDefeated?'ПУТЬ СВОБОДЕН · К ФИНИШУ!':settings.class==='assassin'?'УКЛОНЯЙСЯ → ИЗМАТЫВАЙ':'АТАКУЙ → ЛОМАЙ БРОНЮ',W/2,640)}drawComic();}
 function comicImpact(){
  game.impact={at:performance.now(),label:['БАМ!','БАХ!','БУМ!'][game.impactCount++%3],x:W/2+(game.impactCount%2?90:-90),y:340};
