@@ -229,7 +229,7 @@ function drawStillCue(){
  $('cue-title').textContent=active?'ЗАМРИ!':'ПРИГОТОВЬСЯ ЗАМЕРЕТЬ';
  $('cue-instruction').textContent=cam.active&&!cam.visible?'КАМЕРА НЕ ВИДИТ ИГРОКА':active?`СТОЙ НЕПОДВИЖНО · ${Math.min(100,Math.round(game.stillTime/2.2*100))}%`:'СТАТУЯ ОТКРЫВАЕТ ГЛАЗА';
  $('cue-fill').style.width=`${active?Math.min(100,game.stillTime/2.2*100):0}%`;
- $('zone').textContent='ИСПЫТАНИЕ ТИШИНЫ';
+ $('zone').textContent='ИСПЫТАНИЕ ТИШИНЫ';$('subhead').textContent=active?'СТАТУЯ НАБЛЮДАЕТ · НЕ ДВИГАЙСЯ':'ЗАКАНЧИВАЙ БЕГ · СКОРО ОСТАНОВКА';if(active)$('run-hint').textContent='УДЕРЖИВАЙ НЕПОДВИЖНОСТЬ · ПОСЛЕ СИГНАЛА ПРОДОЛЖИМ';
 }
 function trackStillness(l,now){
  const ids=[11,12,23,24,15,16,25,26],points=ids.map(i=>refPoint(l,i));
