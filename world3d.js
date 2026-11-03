@@ -60,11 +60,22 @@ window.createTempleWorld=function(canvas){
  const shield=cube(armor,-.82,1.55,.5,.85,1.25,.18,guard);cube(gold,-.82,1.55,.61,.12,1,.05,guard);
  cube(gold,.85,1.0,.45,.6,.1,.18,guard);const sword=cube(new T.MeshStandardMaterial({color:0xc8ded9,metalness:.8,roughness:.2}),.85,1.8,.45,.18,1.5,.09,guard);sword.rotation.z=-.28;
  const banner=new T.Group();scene.add(banner);for(const side of [-1,1]){cube(bark,side*3,2,0,.14,4,.14,banner);cube(cloth,side*2.5,3.2,0,.9,1.4,.08,banner);}
+ // Landing marker and collectible share the active movement cue; reward is scored by gameplay.
+ const landing=new T.Group();landing.name='landing';scene.add(landing);
+ const jadeLight=new T.MeshBasicMaterial({color:0x6fffd0,transparent:true,opacity:.7});
+ cube(jadeLight,0,.035,0,2.3,.035,2.2,landing);
+ const landingRing=mesh(new T.TorusGeometry(.85,.035,6,32),gold,0,.08,0,1,1,1,landing);landingRing.rotation.x=Math.PI/2;
+ const relic=mesh(new T.OctahedronGeometry(.3),gold,0,1.3,0);relic.name='relic';
+ const idol=new T.Group();idol.name='watcher';scene.add(idol);
+ cube(dark,0,.3,0,3.4,.6,2.2,idol);cube(stone,0,2.5,0,2.4,3.8,1.7,idol);cube(gold,0,4.6,0,3,.3,2,idol);
+ cube(dark,0,3.2,.9,1.9,.55,.1,idol);const eyeMat=new T.MeshBasicMaterial({color:0xff6439});
+ for(const side of [-1,1])cube(eyeMat,side*.5,3.2,1,.45,.12,.08,idol);
+ cube(gold,0,2.5,1,.32,.65,.3,idol);cube(dark,0,1.8,.9,1.2,.12,.1,idol);
  let lastHitAt=-100,previousHits=0;
  const warm=new T.PointLight(0xff9b42,12,16,2);scene.add(warm);
  let last=-1;
  return {renderer,camera,scene,render(state){
-  const {time,travel,pace,action,age,event,reduced,menu,hits=0}=state,s=menu?12+Math.sin(time*.06)*2:travel*4.1;
+  const {time,travel,pace,action,age,event,reduced,menu,hits=0,freeze=false}=state,s=menu?12+Math.sin(time*.06)*2:travel*4.1;
   const impulse=Math.max(0,1-age/ .65),motion=reduced?0:Math.sin(impulse*Math.PI);
   let shift=action==='LEFT'?-motion*.95:action==='RIGHT'?motion*.95:0;
   camera.position.set(path(s)+shift,2.15+(action==='DUCK'?-motion*1.1:action==='JUMP'?motion*.9:0)+(reduced?0:Math.sin(travel*14)*.035*pace),-s);
@@ -73,6 +84,7 @@ window.createTempleWorld=function(canvas){
   const bridge=s>=150&&s<=210,inside=s>78&&!bridge;scene.background.set(bridge?0x80b7ba:inside?0x20382e:0x729993);scene.fog.color.copy(scene.background);scene.fog.density=bridge?.012:inside?.034:.018;
   warm.position.set(path(s),3,-s-5);
   if(hits!==previousHits){if(hits>previousHits)lastHitAt=time;else lastHitAt=-100;previousHits=hits;}
+  const watching=time>=52&&time<58&&!menu;idol.visible=watching;idol.position.set(path(s+8),0,-s-8);idol.rotation.y=yaw(s+8);eyeMat.color.set(freeze?0xff6439:0xc1ae56);
   const fighting=time>=18&&time<29&&!menu,approaching=time>=15&&time<18&&!menu;
   guard.visible=fighting||approaching;
   const recoil=Math.min(1,Math.max(0,1-(time-lastHitAt)/.55)),distance=approaching?6+(18-time)*4:5;
@@ -81,7 +93,8 @@ window.createTempleWorld=function(canvas){
   sword.rotation.x=fighting?Math.sin(time*3)*.22:0;shield.rotation.z=Math.sin(time*2)*.06;
   banner.visible=fighting||approaching;banner.position.set(path(s+12),0,-s-12);banner.rotation.y=yaw(s+12);
 
-  for(const g of Object.values(hazards))g.visible=false;
+  for(const g of Object.values(hazards))g.visible=false;landing.visible=false;relic.visible=false;
+  if(event&&['LEFT','RIGHT','JUMP','STEP'].includes(event.type)&&!watching){const d=Math.max(.7,(event.at-time)*8+2),offset=event.type==='LEFT'?-1.4:event.type==='RIGHT'?1.4:0;relic.visible=true;relic.position.set(path(s+d)+offset,1.3,-s-d);relic.rotation.y=time*2;landing.visible=['JUMP','STEP'].includes(event.type);landing.position.set(path(s+d+2),0,-s-d-2);landing.rotation.y=yaw(s+d+2);}
   if(event&&event.phase!=='boss'&&!(fighting&&['PUNCH','BLOCK','LEFT','RIGHT'].includes(event.type))){const g=hazards[event.type];if(g){const distance=Math.max(.5,(event.at-time)*8+2);g.visible=true;g.position.set(path(s+distance),0,-s-distance);g.rotation.y=yaw(s+distance);}}
   if(last!==s){last=s;}renderer.render(scene,camera);
  },dispose(){renderer.dispose();}};
