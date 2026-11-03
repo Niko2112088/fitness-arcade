@@ -39,3 +39,11 @@ Run `node tests/scene.cjs` for separate WebGL smoke checks and jungle/gate/templ
 ## Staged encounters (0.4)
 
 The gate sentinel appears at 15 seconds and the 18–29 second encounter alternates punches, block and dodge prompts. Successful punches trigger recoil and the existing comic impact. A narrow bridge replaces the floor and side walls between route distances 150 and 210; a lower ravine surface remains visible beneath it. The bridge is reached through actual running progress (roughly 40 seconds of continuous movement), not a forced teleport. Scene smoke checks cover sentinel visibility, recoil reset and a bridge screenshot.
+
+## Route tasks (0.5)
+
+Successful LEFT/RIGHT/JUMP/STEP cues collect a visible relic (+50 bonus); a wrong move or missed cue earns none. The HUD and result report relic count. Jump/step cues display a turquoise landing pad beyond the obstacle. Low-impact mode continues to convert jumps to steps.
+
+At 52 seconds the watcher warns the player; from 54 to 58 seconds it asks them to freeze. After a 0.8-second settling period, accumulate 2.2 consecutive still seconds to earn one relic and 300 points. Movement resets the hold. No early game-over on failure. In camera mode the trial requires a calibrated, visible, fresh pose and eight visible joints (shoulders, hips, wrists, knees). Average joint speed is normalized by torso length; the current threshold is a heuristic pending real-device tuning. Missing or stale camera data never earns stillness credit. In button mode release movement controls; this is a demonstration fallback, not verification of physical stillness.
+
+`node tests/tasks.cjs` checks matching/mismatching actions, collection, freeze input suppression, successful hold, camera loss and hold reset. The approved guardian concept still awaits an actual rigged model; the watcher is a separate temple idol, not a replacement for that design.
