@@ -49,3 +49,7 @@ Compare at 360x202,10fps, source start=0, virtual review start=0. Report raw pix
 This is an original art pass over the first 120m, not a new claim of reference fidelity. Cue timing and camera motion code are unchanged. Compare [the same camera frames before and after](opening-before-after.png): 0.4s (clear track), 1.1s (fire bar) and 7.4s (bridge). Rounded rocks, folded palm fronds, ferns, bevelled masonry, moss, gateway medallions, rope rails and distant mountain silhouettes replace the plain opening. The soft canopy mask approximates shade; there are no volumetric sun shafts or dynamic shadow maps.
 
 At review times 0.4 / 1.1 / 4.8 / 7.4 / 9.9 seconds the updated scene recorded 66 / 58 / 56 / 57 / 64 draw calls and 147280 / 143482 / 143320 / 143568 / 123276 triangles. The baseline had 14–22 calls and roughly 63536–63632 triangles. Detail increases GPU work despite section-based frustum culling; these counters are not an FPS or thermal measurement on an iPhone. Software Chromium produced these captures. The pixel/activity statistics above belong to version 0.6 and were not remeasured for this art pass.
+
+## Version 0.7.1 — grounded fire
+
+User feedback overrides the original ducking fire cues: the 1.35s and 26.6s events now use ground fire and JUMP (STEP with low-impact enabled). Flame sheets start at y=0.02 above the track and rise from a charred strip with embers; the floating-fire geometry was removed. Overhead logs and stone bars retain DUCK. The 0.7 screenshots and video above predate this correction.

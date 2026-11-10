@@ -65,3 +65,7 @@ The first 120 route metres (about 12 seconds at nominal speed) add curved palm f
 Static batches are split into 96m sections to permit frustum culling. The lane remains open and the existing cue times, actions and scoring are unchanged. The new style is still procedural and stylized; this is an initial improvement over the angular tree crowns, not reference-quality art. Physical iPhone 11 performance is not yet measured.
 
 ![Opening route before and after the environment update](docs/opening-before-after.png)
+
+## Ground fire correction (0.7.1)
+
+Fire now rises from a charred strip on the track. The two former floating-fire cues at 1.35s and 26.6s require a jump (a step in low-impact mode); overhead logs and stone bars still require ducking. Timings are unchanged.

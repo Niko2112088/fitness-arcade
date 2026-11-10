@@ -51,15 +51,21 @@ window.createTempleWorld=function(canvas){
  scene.traverse(o=>{if(!o.isMesh||o.isInstancedMesh)return;const key=o.geometry.uuid+o.material.uuid+Math.floor(-o.matrixWorld.elements[14]/96);if(!batches.has(key))batches.set(key,[]);batches.get(key).push({g:o.geometry,m:o.material,x:o.matrixWorld.clone()});originals.push(o)});originals.forEach(o=>o.removeFromParent());
  for(const list of batches.values()){const m=new T.InstancedMesh(list[0].g,list[0].m,list.length);list.forEach((o,i)=>m.setMatrixAt(i,o.x));scene.add(m);}
  // Reusable near-field hazards. Each choreography event selects geometry as well as input.
- const hazards={};for(const kind of ['fire-bar','fire-floor','log','stone-bar','spikes','roots','gap','roller','pillar']){
+ const hazards={};for(const kind of ['fire-floor','log','stone-bar','spikes','roots','gap','roller','pillar']){
   const g=new T.Group();g.name='hazard-'+kind;scene.add(g);hazards[kind]=g;
-  if(kind.startsWith('fire')){const height=kind==='fire-bar'?2.05:.38;
+  if(kind==='fire-floor'){
    const fireMat=new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,uniforms:{time:{value:0}},vertexShader:'varying vec2 uvFire;void main(){uvFire=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:`precision mediump float;varying vec2 uvFire;uniform float time;
    float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
    float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
    void main(){vec2 p=uvFire;float n=noise(vec2(p.x*24.,p.y*4.-time*5.))*.6+noise(vec2(p.x*48.,p.y*8.-time*9.))*.3;
-   float edge=.55+n*.5;float density=(1.-smoothstep(edge-.28,edge,p.y));float core=pow(max(0.,1.-p.y),2.);vec3 color=mix(vec3(1.,.12,.005),vec3(1.,.82,.15),core);color=mix(color,vec3(1.,1.,.8),pow(core,4.));float alpha=density*smoothstep(0.,.08,p.x)*(1.-smoothstep(.92,1.,p.x));gl_FragColor=vec4(color,alpha);}`});
-   mesh(new T.PlaneGeometry(8,1.35),fireMat,0,height,0,1,1,1,g);
+   float edge=.55+n*.5;float density=(1.-smoothstep(edge-.28,edge,p.y));float core=pow(max(0.,1.-p.y),2.);vec3 color=mix(vec3(1.,.12,.005),vec3(1.,.82,.15),core);color=mix(color,vec3(1.,1.,.65),pow(core,4.)*.25);float alpha=density*smoothstep(0.,.08,p.x)*(1.-smoothstep(.92,1.,p.x));gl_FragColor=vec4(color,alpha);}`});
+   // Both flame sheets start at y=.02, directly above the track surface.
+   const flameSheet=new T.PlaneGeometry(6,.9);
+   mesh(flameSheet,fireMat,0,.47,.2,1,1,1,g);
+   mesh(flameSheet,fireMat,0,.38,-.25,.96,.8,1,g);
+   cube(mat(0x241c17),0,.02,0,6,.04,.85,g);
+   const ember=new T.MeshBasicMaterial({color:0xe95612});
+   for(let i=0;i<12;i++)cube(ember,(i-5.5)*.48,.045,Math.sin(i*3)*.22,.3,.015,.12,g);
   }
   else if(kind==='log'){const o=mesh(new T.CylinderGeometry(.42,.42,8,10),wood,0,2.15,0,1,1,1,g);o.rotation.z=Math.PI/2;for(const x of [-3,0,3]){const band=mesh(new T.TorusGeometry(.44,.065,5,12),gold,x,2.15,0,1,1,1,g);band.rotation.y=Math.PI/2;}}
   else if(kind==='stone-bar'){cube(stone,0,2.05,0,8,.7,.8,g);for(let i=-3;i<=3;i++)cube(gold,i,2.05,.45,.35,.35,.12,g);}
