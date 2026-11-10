@@ -1,0 +1,4 @@
+.reanimate/
+node_modules/
+*-preview.mp4
+/*.png

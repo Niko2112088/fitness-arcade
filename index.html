@@ -26,7 +26,7 @@ canvas{display:block;width:100%;height:100%;background:#10182a} .hidden{display:
 @media(max-height:560px) and (orientation:landscape){.menu-card .subtitle,.menu-card .tiny-note{display:none}.menu-card .settings{flex-wrap:nowrap;gap:5px;margin:6px 0}.menu-card .big-title{font-size:clamp(26px,5.6vw,40px);margin:3px 0}.menu-card .eyebrow{font-size:8px}.menu-card .setting-group{padding:4px}.menu-card .choice{padding:4px 6px;font-size:9px}.menu-card .primary{padding:8px 18px}.menu-card .secondary{padding:8px 12px}.menu-card{padding:5px}}
 @media(max-width:700px) and (orientation:portrait){.menu-card .subtitle,.menu-card .tiny-note,.menu-card .eyebrow{display:none}.menu-card .settings{margin:3px 0 5px;gap:4px}.menu-card .big-title{font-size:27px;margin:0}.menu-card .setting-group{padding:2px 4px}.menu-card .setting-label{font-size:7px;margin:0 0 2px}.menu-card .choice{font-size:8px;padding:3px 5px}.menu-card .primary{font-size:10px;padding:7px 9px}.menu-card .secondary{font-size:9px;padding:6px 8px}.menu-card .actions{gap:4px}.menu-card{padding:2px}.overlay{padding:2px}}
 body.tv #app{padding:0;gap:0}body.tv #shell{width:min(100vw,calc(100dvh * 16/9));border:0;border-radius:0}body.tv #control-area,body.tv #footnote{display:none}#exit-tv{position:fixed;right:10px;bottom:10px;z-index:20;background:#142334bf;border:1px solid #9ac5db42;border-radius:12px;padding:10px;color:white}body.tv .menu-card{max-height:95%;overflow:auto}
-#world3d{position:absolute;inset:0;width:100%;height:100%}#world{position:relative;background:transparent}#cue{top:76%;min-width:0}#cue-icon{font-size:28px}#cue-title{font-size:32px}#cue-instruction{font-size:11px}.top-ui{background:linear-gradient(#0718119c,transparent);padding:14px 20px}.brand-mini{letter-spacing:3px}#subhead{top:70px}.hearts{font-size:19px;color:#d3edb5}body.tv #exit-tv{opacity:.4}
+#world3d{position:absolute;inset:0;width:100%;height:100%}#world{position:relative;background:transparent}#cue{top:80%;min-width:0}#cue-icon{font-size:28px}#cue-title{font-size:28px}#cue-instruction{font-size:11px}.top-ui{background:linear-gradient(#0718119c,transparent);padding:14px 20px}.brand-mini{letter-spacing:3px}#subhead{top:70px}.hearts{font-size:19px;color:#d3edb5}body.tv #exit-tv{opacity:.4}
 </style>
 </head>
 <body>
@@ -62,7 +62,7 @@ body.tv #app{padding:0;gap:0}body.tv #shell{width:min(100vw,calc(100dvh * 16/9))
           <div class="setting-group"><div class="setting-label">ФИЗИЧЕСКИЙ РЕЖИМ</div><div class="choice-row"><button class="choice" data-kind="jump" data-val="none">Без прыжков</button><button class="choice active" data-kind="jump" data-val="yes">С прыжками</button></div></div>
           <div class="setting-group"><div class="setting-label">ТЕМП</div><div class="choice-row"><button class="choice active" data-kind="difficulty" data-val="normal">Обычный</button><button class="choice" data-kind="difficulty" data-val="easy">Лёгкий</button></div></div>
         </div>
-        <div class="actions"><button id="start" class="primary">▶ НАЧАТЬ ЗАБЕГ</button><button id="tv-mode" class="secondary">▣ ЭКРАН ТВ</button><button id="camera-menu" class="secondary">◉ КАМЕРА (ЭКСП.)</button></div>
+        <div class="actions"><button id="start" class="primary">▶ НАЧАТЬ ЗАБЕГ</button><button id="preview-route" class="secondary">▷ ПРОСМОТР ТРАССЫ · 30 С</button><button id="tv-mode" class="secondary">▣ ЭКРАН ТВ</button><button id="camera-menu" class="secondary">◉ КАМЕРА (ЭКСП.)</button></div>
         <div class="tiny-note">Управление: кнопки снизу или клавиатура. Камера с распознаванием позы — экспериментальный режим: нужен HTTPS/localhost и интернет для загрузки MediaPipe. Музыка запускается после нажатия «Начать». Для ТВ: поверни iPhone горизонтально, включи «Повтор экрана» AirPlay и режим «Экран ТВ».</div>
       </div>
     </div>
@@ -82,9 +82,10 @@ body.tv #app{padding:0;gap:0}body.tv #shell{width:min(100vw,calc(100dvh * 16/9))
     <button data-act="BLOCK"><span>🛡</span>БЛОК <small>B</small></button>
     <button id="pause-btn"><span>Ⅱ</span>ПАУЗА</button>
   </div>
-  <div id="footnote">Прототип 0.5 • 3D • Забег 3:00 • Музыка синтезируется в браузере • Ничего не записывается и не отправляется</div>
+  <div id="footnote">Прототип 0.6 · ритм по видеореференсу • 3D • Забег 3:00 • Музыка синтезируется в браузере • Ничего не записывается и не отправляется</div>
 </div>
 <script src="vendor/three.min.js"></script>
+<script src="route.js"></script>
 <script src="world3d.js"></script>
 <script>
 'use strict';
@@ -92,19 +93,19 @@ const $=id=>document.getElementById(id), canvas=$('world'), ctx=canvas.getContex
 const templeWorld=window.createTempleWorld($('world3d'));if(!templeWorld)$('world3d').classList.add('hidden');
 const W=1280,H=720, TWO=Math.PI*2;
 const settings={class:'assassin',jump:'yes',difficulty:'normal'};
-const game={mode:'MENU',clock:0,lives:3,score:0,combo:0,maxCombo:0,hits:0,events:[],idx:0,bossHp:100,stamina:100,armor:100,attackCooldown:0,pulse:0,cameraShake:0,actionName:'',actionAge:10,lastActionAt:-100,pace:0,scene:0,calibration:null,relics:0,stillTime:0,lastMove:0,travel:0,runUntil:0,misses:0,bossDefeated:false,impact:null,impactCount:0,reducedMotion:window.matchMedia("(prefers-reduced-motion: reduce)").matches};
+const game={preview:false,mode:'MENU',clock:0,lives:3,score:0,combo:0,maxCombo:0,hits:0,events:[],idx:0,bossHp:100,stamina:100,armor:100,attackCooldown:0,pulse:0,cameraShake:0,actionName:'',actionAge:10,lastActionAt:-100,pace:0,scene:0,calibration:null,relics:0,stillTime:0,lastMove:0,travel:0,runUntil:0,misses:0,bossDefeated:false,impact:null,impactCount:0,reducedMotion:window.matchMedia("(prefers-reduced-motion: reduce)").matches};
 const phases=[{at:0,name:'ЗОВ ДЖУНГЛЕЙ',scene:0},{at:35,name:'ТРОПА К ХРАМУ',scene:1},{at:67,name:'ВОРОТА СОЛНЦА',scene:2},{at:91,name:'ЗАЛ ЛОВУШЕК',scene:3},{at:114,name:'КАМЕННЫЙ СТРАЖ',scene:4}];
 const totalTime=180;
 const cueDefs={STILL:{icon:'◉',title:'ЗАМРИ!',tip:'СТАТУЯ НАБЛЮДАЕТ'},DUCK:{icon:'⬇',title:'ПРИГНИСЬ!',tip:'ОБРУШИВАЮЩАЯСЯ БАЛКА'},LEFT:{icon:'↙',title:'ВЛЕВО!',tip:'УКЛОНИСЬ ОТ УДАРА'},RIGHT:{icon:'↘',title:'ВПРАВО!',tip:'УКЛОНИСЬ ОТ УДАРА'},JUMP:{icon:'⬆',title:'ПРЫЖОК!',tip:'ПЕРЕПРЫГНИ ПРЕГРАДУ'},STEP:{icon:'🦵',title:'ВЫСОКОЕ КОЛЕНО!',tip:'ПЕРЕШАГНИ ПРЕГРАДУ'},JACK:{icon:'✳',title:'АРМЕЙСКИЙ ДЖАМП!',tip:'РАЗВЕДИ РУКИ И НОГИ'},JACK_LOW:{icon:'✳',title:'РУКИ В СТОРОНЫ!',tip:'ДЖАМП БЕЗ ПРЫЖКА: ШАГ И РУКИ'},FLAP:{icon:'〰',title:'МАХИ РУКАМИ!',tip:'УДЕРЖИ ПЛАНЕР'},PUNCH:{icon:'🥊',title:'УДАР!',tip:'РАЗБЕЙ ПРЕПЯТСТВИЕ'},BLOCK:{icon:'🛡',title:'БЛОК!',tip:'ЗАЩИТИСЬ'},RUN:{icon:'⚡',title:'БЕГИ!',tip:'ДЕРЖИ РИТМ'}};
 const scripted=[
- [5,'DUCK'],[10,'JUMP'],[15,'LEFT'],[20,'PUNCH'],[22,'BLOCK'],[24,'PUNCH'],[26,'RIGHT'],[28,'PUNCH'],[32,'DUCK'],
+ [34,'PUNCH'],[36,'BLOCK'],[38,'PUNCH'],
  [39,'DUCK'],[44,'STEP'],[49,'JUMP'],[58,'STILL'],[59,'JACK'],[64,'RIGHT'],
  [71,'FLAP'],[76,'LEFT'],[81,'FLAP'],[86,'RIGHT'],
  [95,'PUNCH'],[99,'DUCK'],[103,'STEP'],[107,'BLOCK'],[111,'PUNCH'],
  [119,'LEFT'],[124,'RIGHT'],[129,'DUCK'],[134,'PUNCH'],[139,'BLOCK'],[144,'LEFT'],[149,'PUNCH'],[154,'RIGHT'],[159,'DUCK'],[164,'PUNCH']
 ];
 function effectiveType(type){if(type==='JUMP'&&settings.jump==='none')return 'STEP';if(type==='JACK'&&settings.jump==='none')return 'JACK_LOW';return type}
-function buildEvents(){game.events=scripted.map(([at,type])=>({at,type:effectiveType(type),phase:at>=114?'boss':'run',done:false,missed:false}));game.idx=0;}
+function buildEvents(){game.events=[...TempleRoute.beats.map(e=>({...e,type:effectiveType(e.type),phase:'run',done:false,missed:false})),...scripted.map(([at,type])=>({at,cue:at-(settings.difficulty==='easy'?3.25:2.9),end:at+(settings.difficulty==='easy'?1.1:.62),type:effectiveType(type),phase:at>=114?'boss':'run',done:false,missed:false}))];game.idx=0;}
 const sound={ac:null,interval:null,next:0,step:0,enabled:true};
 function initAudio(){if(!sound.ac){const A=window.AudioContext||window.webkitAudioContext;if(!A)return;sound.ac=new A()}sound.ac.resume().catch(()=>{});sound.next=sound.ac.currentTime+.07;sound.step=0;if(sound.interval)clearInterval(sound.interval);sound.interval=setInterval(scheduleMusic,65)}
 function osc(freq,dur,when,kind='sine',gain=.06,slide=0){if(!sound.ac||sound.ac.state!=='running')return;const o=sound.ac.createOscillator(),g=sound.ac.createGain();o.type=kind;o.frequency.setValueAtTime(Math.max(1,freq),when);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(1,freq+slide),when+dur);g.gain.setValueAtTime(Math.max(.0001,gain),when);g.gain.exponentialRampToValueAtTime(.0001,when+dur);o.connect(g);g.connect(sound.ac.destination);o.start(when);o.stop(when+dur+.01)}
@@ -113,8 +114,8 @@ function scheduleMusic(){if(game.mode!=='RUN'||!sound.ac||sound.ac.state!=='runn
 function sfx(ok){if(!sound.ac)return;let t=sound.ac.currentTime;if(ok){osc(570,.08,t,'triangle',.10,350);osc(820,.17,t+.05,'sine',.055,250)}else{osc(250,.19,t,'sawtooth',.14,-160);noise(.08,t,.04)}}
 function audioStop(){if(sound.interval){clearInterval(sound.interval);sound.interval=null}if(sound.ac&&sound.ac.state==='running')sound.ac.suspend().catch(()=>{})}
 function setMode(mode){game.mode=mode;$('menu').classList.toggle('hidden',mode!=='MENU');$('pause-menu').classList.toggle('hidden',mode!=='PAUSE');$('result-menu').classList.toggle('hidden',mode!=='RESULT');$('game-ui').classList.toggle('hidden',mode==='MENU');$('boss').classList.toggle('hidden',!(mode!=='MENU'&&game.clock>=114&&game.clock<totalTime));$('cue').classList.add('hidden');}
-function resetGame(){Object.assign(game,{clock:-3.2,relics:0,stillTime:0,lastMove:0,travel:0,runUntil:0,misses:0,bossDefeated:false,impact:null,impactCount:0,lives:3,score:0,combo:0,maxCombo:0,hits:0,idx:0,bossHp:100,stamina:100,armor:100,cameraShake:0,actionName:'',actionAge:10,lastActionAt:-10,pace:0,scene:0});cam.stepSide=0;cam.airborne=false;cam.motionSample=null;cam.stillValid=false;clearTimeout(notify.timeout);$('toast').classList.remove('show');buildEvents();setMode('RUN');$('run-hint').textContent=cam.active?'● КАМЕРА ВКЛЮЧЕНА':'R — БЕГ НА МЕСТЕ / РИТМ';initAudio();drawHUD();}
-function backToMenu(){audioStop();setMode('MENU');game.clock=0;}
+function resetGame(){Object.assign(game,{preview:false,clock:-3.2,relics:0,stillTime:0,lastMove:0,travel:0,runUntil:0,misses:0,bossDefeated:false,impact:null,impactCount:0,lives:3,score:0,combo:0,maxCombo:0,hits:0,idx:0,bossHp:100,stamina:100,armor:100,cameraShake:0,actionName:'',actionAge:10,lastActionAt:-10,pace:0,scene:0});cam.stepSide=0;cam.airborne=false;cam.motionSample=null;cam.stillValid=false;clearTimeout(notify.timeout);$('toast').classList.remove('show');buildEvents();setMode('RUN');$('run-hint').textContent=cam.active?'● КАМЕРА ВКЛЮЧЕНА':'R — БЕГ НА МЕСТЕ / РИТМ';initAudio();drawHUD();}
+function backToMenu(){game.preview=false;audioStop();setMode('MENU');game.clock=0;}
 function pause(reason){if(game.mode!=='RUN')return;game.pausedReason=reason||'';$('pause-reason').textContent=reason||'Отдохни и продолжи, когда будешь готов.';audioStop();setMode('PAUSE');}
 function resume(){if(game.mode!=='PAUSE')return;setMode('RUN');initAudio();}
 function accuracy(){const resolved=game.hits+game.misses;return resolved?Math.round(game.hits/resolved*100):0}
@@ -127,10 +128,10 @@ function result(){if(game.mode==='RESULT')return;audioStop();setMode('RESULT');
 }
 function notify(msg,color='#fff'){let t=$('toast');t.textContent=msg;t.style.color=color;t.classList.add('show');clearTimeout(notify.timeout);notify.timeout=setTimeout(()=>t.classList.remove('show'),650)}
 function currentEvent(){return game.events.find(e=>!e.done&&!e.missed)}
-function nearestTimedEvent(){return game.events.find(e=>!e.done&&!e.missed&&game.clock>=e.at-(settings.difficulty==='easy'?3.25:2.9)&&game.clock<=e.at+(settings.difficulty==='easy'?1.1:.62))}
-function handleAction(type,src='manual'){if(game.mode!=='RUN'||game.clock<0)return;if(src==='camera'&&cam.enabled&&!cam.visible)return;const now=performance.now();game.lastMove=now;if(freezeActive())return;if(type==='RUN'){game.runUntil=now+700;return}if(now-game.lastActionAt<180)return;game.lastActionAt=now;game.actionName=type;game.actionAge=0;game.pulse=1;
+function nearestTimedEvent(){return game.events.find(e=>!e.done&&!e.missed&&game.clock>=e.cue&&game.clock<=e.end)}
+function handleAction(type,src='manual'){if(game.mode!=='RUN'||game.clock<0)return;if(game.preview&&src!=='preview')return;if(src==='camera'&&cam.enabled&&!cam.visible)return;const now=performance.now();game.lastMove=now;if(freezeActive())return;if(type==='RUN'){game.runUntil=now+700;return}if(now-game.lastActionAt<180)return;game.lastActionAt=now;game.actionName=type;game.actionAge=0;game.pulse=1;
  let e=nearestTimedEvent();if(!e)return;let valid=type===e.type || (e.type==='STEP'&&type==='JUMP') || (e.type==='PUNCH'&&(type==='PUNCH_L'||type==='PUNCH_R')) || (e.type==='JACK_LOW'&&type==='JACK') || (e.phase==='boss'&&e.type==='BLOCK'&&type==='LEFT'&&settings.class==='assassin');
- if(valid&&game.clock>=e.at-(settings.difficulty==='easy'?1.8:1.35)&&game.clock<=e.at+(settings.difficulty==='easy'?1.1:.62)){e.done=true;game.combo++;game.maxCombo=Math.max(game.maxCombo,game.combo);game.hits++;if(['LEFT','RIGHT','JUMP','STEP'].includes(e.type)){game.relics++;game.score+=50;}game.score+=100+Math.min(game.combo,15)*12;sfx(true);if(type.startsWith('PUNCH'))comicImpact();notify(game.combo>=5?`⚡ КОМБО ×${game.combo}`:'Идеально! +100','#caff8e');if(e.phase==='boss')hitBoss(e,type);drawHUD();}else if(game.clock<e.at-(settings.difficulty==='easy'?1.8:1.35)){notify('ЕЩЁ РАНО','#ffe6b0')}else{notify('ДРУГОЕ ДВИЖЕНИЕ','#ffe6b0')}}
+ if(valid&&game.clock>=e.at-(e.visual?.45:settings.difficulty==='easy'?1.8:1.35)&&game.clock<=e.end){e.done=true;game.combo++;game.maxCombo=Math.max(game.maxCombo,game.combo);game.hits++;if(['LEFT','RIGHT','JUMP','STEP'].includes(e.type)){game.relics++;game.score+=50;}game.score+=100+Math.min(game.combo,15)*12;sfx(true);if(type.startsWith('PUNCH'))comicImpact();notify(game.combo>=5?`⚡ КОМБО ×${game.combo}`:'Идеально! +100','#caff8e');if(e.phase==='boss')hitBoss(e,type);drawHUD();}else if(game.clock<e.at-(e.visual?.45:settings.difficulty==='easy'?1.8:1.35)){notify('ЕЩЁ РАНО','#ffe6b0')}else{notify('ДРУГОЕ ДВИЖЕНИЕ','#ffe6b0')}}
 function hitBoss(e,type){if(settings.class==='assassin'){
  if(['LEFT','RIGHT','DUCK','BLOCK'].includes(e.type)){game.stamina=Math.max(0,game.stamina-35);if(game.stamina===0){game.bossHp=Math.max(0,game.bossHp-29);game.stamina=100;notify('⚡ ГОЛЕМ ИЗМОТАН! −29 HP','#caff8e');}}
  else if(e.type==='PUNCH'){game.bossHp=Math.max(0,game.bossHp-14)}
@@ -140,12 +141,13 @@ function hitBoss(e,type){if(settings.class==='assassin'){
  else game.bossHp=Math.max(0,game.bossHp-8);
  }
  game.cameraShake=.45;if(game.bossHp<=0&&!game.bossDefeated){game.bossDefeated=true;game.score+=1500;notify('СТРАЖ ПОВЕРЖЕН! +1500','#ffe29b')}}
-function missEvent(e){e.missed=true;game.misses++;game.combo=0;game.score=Math.max(0,game.score-40);game.cameraShake=.3;sfx(false);notify('ПРОМАХ · −40 · ПРОДОЛЖАЙ','#ffbba3');drawHUD()}
+function missEvent(e){if(e.done||e.missed)return;e.missed=true;game.misses++;game.combo=0;game.score=Math.max(0,game.score-40);game.cameraShake=.3;sfx(false);notify('ПРОМАХ · −40 · ПРОДОЛЖАЙ','#ffbba3');drawHUD()}
 function drawHUD(){$('relic-count').textContent='♦ '+game.relics;$('hearts').textContent=game.hits+game.misses?accuracy()+'%':'—';$('score').textContent=String(game.score).padStart(5,'0');$('combo').textContent='×'+game.combo;$('progress').style.width=`${Math.min(100,Math.max(0,game.clock/totalTime*100))}%`;$('boss-hp').style.width=`${Math.max(0,game.bossHp)}%`;$('boss-meta').textContent=settings.class==='assassin'?`ВЫНОСЛИВОСТЬ ${Math.ceil(game.stamina)}%`:`БРОНЯ ${Math.ceil(game.armor)}%`;
-let p=phases.filter(p=>game.clock>=p.at).at(-1)||phases[0];$('zone').textContent=game.clock>=18&&game.clock<29?'СТРАЖ ВОРОТ':game.travel*4.1>=150&&game.travel*4.1<=210?'МОСТ НАД ПРОПАСТЬЮ':p.name;$('subhead').textContent=p.scene===2?'✦ ПЛАНЕР: МАХИ РУКАМИ':p.scene===4?`⚔ ${settings.class==='assassin'?'ИЗМОТАЙ ВРАГА':'РАЗБЕЙ БРОНЮ'}`:'⚡ БЕГ НА МЕСТЕ ДВИГАЕТ МИР';$('boss').classList.toggle('hidden',game.clock<114||game.mode!=='RUN'||game.bossDefeated);$('run-hint').textContent=`${Math.floor(Math.ceil(Math.max(0,totalTime-game.clock))/60)}:${String(Math.ceil(Math.max(0,totalTime-game.clock))%60).padStart(2,'0')} · ${game.pace>.15?'⚡ ДВИГАЕМСЯ':'БЕГИ НА МЕСТЕ · R / КНОПКА БЕГ'}`;
-const e=nearestTimedEvent();if(game.clock>=0&&e){let d=cueDefs[e.type];$('cue').classList.remove('hidden');$('cue-icon').textContent=d.icon;$('cue-title').textContent=d.title;$('cue-instruction').textContent=e.phase==='boss'?'КАМЕННЫЙ СТРАЖ АТАКУЕТ':d.tip;$('cue-fill').style.width=`${Math.max(0,Math.min(100,(e.at+(settings.difficulty==='easy'?1.1:.62)-game.clock)/(settings.difficulty==='easy'?4.35:3.5)*100))}%`;}else $('cue').classList.add('hidden');drawStillCue();}
+let p=phases.filter(p=>game.clock>=p.at).at(-1)||phases[0];$('zone').textContent=game.clock<31?TempleRoute.chapter(game.clock).name:((game.travel*10>=60&&game.travel*10<=125)||(game.travel*10>=175&&game.travel*10<=215))?'МОСТ НАД ПРОПАСТЬЮ':p.name;$('subhead').textContent=p.scene===2?'✦ ПЛАНЕР: МАХИ РУКАМИ':p.scene===4?`⚔ ${settings.class==='assassin'?'ИЗМОТАЙ ВРАГА':'РАЗБЕЙ БРОНЮ'}`:'⚡ БЕГ НА МЕСТЕ ДВИГАЕТ МИР';$('boss').classList.toggle('hidden',game.clock<114||game.mode!=='RUN'||game.bossDefeated);$('run-hint').textContent=`${game.preview?'ПРОСМОТР БЕЗ КАМЕРЫ · ':''}${Math.floor(Math.ceil(Math.max(0,totalTime-game.clock))/60)}:${String(Math.ceil(Math.max(0,totalTime-game.clock))%60).padStart(2,'0')} · ${game.pace>.15?'⚡ ДВИГАЕМСЯ':'БЕГИ НА МЕСТЕ · R / КНОПКА БЕГ'}`;
+const e=nearestTimedEvent();if(game.clock>=0&&e){let d=cueDefs[e.type];$('cue').classList.remove('hidden');$('cue-icon').textContent=d.icon;$('cue-title').textContent=d.title;$('cue-instruction').textContent=e.phase==='boss'?'КАМЕННЫЙ СТРАЖ АТАКУЕТ':d.tip;$('cue-fill').style.width=`${Math.max(0,Math.min(100,(e.end-game.clock)/Math.max(.1,e.end-e.cue)*100))}%`;}else $('cue').classList.add('hidden');drawStillCue();}
 for(let b of document.querySelectorAll('[data-kind]'))b.addEventListener('click',()=>{settings[b.dataset.kind]=b.dataset.val;for(let x of document.querySelectorAll(`[data-kind="${b.dataset.kind}"]`))x.classList.toggle('active',x===b);$('jump-label').textContent=settings.jump==='yes'?'ПРЫЖОК':'ШАГ';$('jack-label').textContent=settings.jump==='yes'?'ДЖЕК':'РУКИ'});
 $('tv-mode').onclick=()=>{document.body.classList.add('tv');$('exit-tv').classList.remove('hidden')};$('exit-tv').onclick=()=>{document.body.classList.remove('tv');$('exit-tv').classList.add('hidden')};
+$('preview-route').onclick=()=>{resetGame();game.preview=true;game.clock=0;game.pace=1};
 $('start').onclick=resetGame;$('again').onclick=resetGame;$('resume').onclick=resume;$('pause-btn').onclick=()=>game.mode==='RUN'?pause():game.mode==='PAUSE'?resume():null;$('back-menu').onclick=backToMenu;$('restart-menu').onclick=backToMenu;
 for(let btn of document.querySelectorAll('[data-act]')){btn.addEventListener('pointerdown',ev=>{ev.preventDefault();btn.classList.add('down');handleAction(btn.dataset.act);setTimeout(()=>btn.classList.remove('down'),160)})}
 const keyMap={'ArrowLeft':'LEFT','ArrowRight':'RIGHT','ArrowDown':'DUCK','ArrowUp':'JUMP',' ':'PUNCH','KeyW':'STEP','KeyJ':'JACK','KeyF':'FLAP','KeyB':'BLOCK','KeyR':'RUN','KeyA':'LEFT','KeyD':'RIGHT','KeyS':'DUCK'};
@@ -244,8 +246,8 @@ function trackStillness(l,now){
  cam.motionSample={at:now,points:points.map(p=>({x:p.x,y:p.y}))};
 }
 let lastFrame=performance.now();function frame(now){let dt=Math.min(.04,(now-lastFrame)/1000);lastFrame=now;if(game.mode==='RUN'){
-if(game.clock<totalTime){game.clock+=dt;game.actionAge+=dt;game.cameraShake=Math.max(0,game.cameraShake-dt*3);updateStill(dt,now);const target=!freezeActive()&&now<game.runUntil?1:0;game.pace+=(target-game.pace)*(1-Math.exp(-dt*(target?5:4)));if(game.pace<.001)game.pace=0;game.travel+=dt*game.pace;if(game.clock>0){for(let e of game.events)if(!e.done&&!e.missed&&game.clock>e.at+(settings.difficulty==='easy'?1.12:.66))missEvent(e);if(game.mode==='RUN'&&game.clock>=totalTime)result()}}else result();
- drawHUD()}
+if(game.clock<totalTime){game.clock+=dt;game.actionAge+=dt;game.cameraShake=Math.max(0,game.cameraShake-dt*3);updateStill(dt,now);const target=game.preview?1:!freezeActive()&&now<game.runUntil?1:0;game.pace+=(target-game.pace)*(1-Math.exp(-dt*(target?5:4)));if(game.pace<.001)game.pace=0;game.travel+=dt*game.pace;if(game.clock>0){for(let e of game.events)if(!e.done&&!e.missed&&game.clock>e.end)missEvent(e);if(game.mode==='RUN'&&game.clock>=totalTime)result()}}else result();
+ if(game.preview){const e=nearestTimedEvent();if(e&&game.clock>=e.at)handleAction(e.type,'preview');if(game.clock>=30)backToMenu();}drawHUD()}
 if(game.mode==='MENU')game.clock+=dt*.4;drawScene(game.clock);requestAnimationFrame(frame)}requestAnimationFrame(frame);
 // Camera / ML: optional, never uploads camera images. Remote model and code are loaded only on explicit activation.
 const cam={active:false,enabled:false,visible:false,landmarker:null,video:null,stream:null,history:[],lastSample:0,lastSeen:0,base:null,lastGesture:{},attempt:0};
@@ -287,10 +289,16 @@ async function startCamera(){if(cam.active)return;let video=$('cam-view');cam.en
  cam.active=true;cam.stepSide=0;cam.airborne=false;cam.base=null;cam.history=[];cam.lastSeen=performance.now();cam.lastSample=0;cam.attempt++;$('camera-menu').textContent='✓ КАМЕРА ВКЛЮЧЕНА';$('camera-menu').classList.add('active');cameraStatus('КАМЕРА: СТОЙ РОВНО');$('run-hint').textContent='● РАСПОЗНАВАНИЕ ДВИЖЕНИЙ ВКЛЮЧЕНО';cameraLoop(cam.attempt);
  }catch(e){console.error(e);cameraStatus('КАМЕРА: '+(e.message||'ошибка'));if(cam.stream){cam.stream.getTracks().forEach(t=>t.stop());cam.stream=null}cam.active=false;cam.enabled=false;video.classList.add('hidden');alert('Не удалось запустить распознавание: '+(e.message||e)+'\n\nИграть кнопками можно без камеры.')}}
 function cameraLoop(attempt){if(!cam.active||attempt!==cam.attempt)return;let n=performance.now();if(n-cam.lastSample>85&&cam.video?.readyState>=2){cam.lastSample=n;try{let r=cam.landmarker.detectForVideo(cam.video,n);if(r.landmarks?.[0])processPose(r.landmarks[0],n);else cam.visible=false}catch(e){console.warn('Camera frame',e)}}
-if(game.mode==='RUN'&&game.clock>0&&cam.base&&!cam.visible&&n-cam.lastSeen>1600){pause('Камера потеряла игрока. Проверь положение телефона и нажми «Продолжить».');cameraStatus('КАМЕРА: НЕ ВИЖУ ИГРОКА')}
+if(!game.preview&&game.mode==='RUN'&&game.clock>0&&cam.base&&!cam.visible&&n-cam.lastSeen>1600){pause('Камера потеряла игрока. Проверь положение телефона и нажми «Продолжить».');cameraStatus('КАМЕРА: НЕ ВИЖУ ИГРОКА')}
 requestAnimationFrame(()=>cameraLoop(attempt))}
 $('camera-menu').onclick=()=>{if(cam.active){cam.active=false;cam.attempt++;cam.enabled=false;cam.stream?.getTracks().forEach(t=>t.stop());cam.stream=null;$('cam-view').classList.add('hidden');$('cam-status').classList.add('hidden');$('camera-menu').textContent='◉ КАМЕРА (ЭКСП.)';$('camera-menu').classList.remove('active')}else startCamera()};
 window.addEventListener('pagehide',()=>{cam.stream?.getTracks().forEach(t=>t.stop());audioStop()});
+</script>
+
+
+<script>
+// Explicit deterministic review surface, only available with ?route-review=1.
+if(new URLSearchParams(location.search).has('route-review'))window.__routeReview={seek(t){game.mode='PAUSE';game.preview=true;game.clock=t;game.travel=t;game.pace=1;const p=TempleRoute.actionPulse(t);game.actionName=p.type;game.actionAge=p.age;for(const e of game.events){e.done=t>e.end;e.missed=false;}document.querySelectorAll('.overlay').forEach(e=>e.classList.add('hidden'));document.body.classList.add('tv');drawHUD();drawScene(t);return {time:t,event:TempleRoute.active(t)?.visual,camera:templeWorld?.camera.position.toArray()};},start(){buildEvents();this.seek(0)}};
 </script>
 </body>
 </html>

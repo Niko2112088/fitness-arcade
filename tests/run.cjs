@@ -8,8 +8,8 @@ await page.evaluate(()=>{game.clock=1;game.travel=0;game.runUntil=0;game.pace=0}
 await page.waitForTimeout(250);assert.equal(await page.evaluate(()=>game.travel),0);
 await page.evaluate(()=>handleAction('RUN'));await page.waitForTimeout(350);assert.ok(await page.evaluate(()=>game.travel)>.05);
 await page.waitForTimeout(2400);assert.ok(await page.evaluate(()=>game.pace)<.002);
-await page.evaluate(()=>{for(const e of game.events.slice(0,5))missEvent(e)});assert.equal(await page.evaluate(()=>game.mode),'RUN');
-assert.equal(await page.evaluate(()=>game.misses),5);
+const beforeMisses=await page.evaluate(()=>game.misses);await page.evaluate(()=>{for(const e of game.events.filter(e=>!e.done&&!e.missed).slice(0,5))missEvent(e)});assert.equal(await page.evaluate(()=>game.mode),'RUN');
+assert.equal(await page.evaluate(()=>game.misses),beforeMisses+5);
 await page.evaluate(()=>{const e=game.events.find(e=>e.type==='PUNCH'&&!e.missed);game.clock=e.at;game.lastActionAt=-100;handleAction('PUNCH')});
 assert.equal(await page.evaluate(()=>game.impact.label),'БАМ!');
 await page.screenshot({path:'impact.png'});
