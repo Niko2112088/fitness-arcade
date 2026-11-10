@@ -1,0 +1,26 @@
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+(async()=>{
+const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox','--enable-unsafe-swiftshader']});
+const page=await browser.newPage({viewport:{width:1440,height:900}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto(process.env.TEST_URL||'http://127.0.0.1:8081');await page.click('#tv-mode');assert.ok(await page.locator('body').evaluate(el=>el.classList.contains('tv')));await page.click('#exit-tv');await page.click('#start');await page.evaluate(()=>{if(templeWorld)templeWorld.render=()=>{}});
+await page.evaluate(()=>{game.clock=1;game.travel=0;game.runUntil=0;game.pace=0});
+await page.waitForTimeout(250);assert.equal(await page.evaluate(()=>game.travel),0);
+await page.evaluate(()=>handleAction('RUN'));await page.waitForTimeout(350);assert.ok(await page.evaluate(()=>game.travel)>.05);
+await page.waitForTimeout(2400);assert.ok(await page.evaluate(()=>game.pace)<.002);
+const beforeMisses=await page.evaluate(()=>game.misses);await page.evaluate(()=>{for(const e of game.events.filter(e=>!e.done&&!e.missed).slice(0,5))missEvent(e)});assert.equal(await page.evaluate(()=>game.mode),'RUN');
+assert.equal(await page.evaluate(()=>game.misses),beforeMisses+5);
+await page.evaluate(()=>{const e=game.events.find(e=>e.type==='PUNCH'&&!e.missed);game.clock=e.at;game.lastActionAt=-100;handleAction('PUNCH')});
+assert.equal(await page.evaluate(()=>game.impact.label),'БАМ!');
+await page.screenshot({path:'impact.png'});
+await page.waitForTimeout(650);assert.equal(await page.evaluate(()=>game.impact),null);
+await page.evaluate(()=>{game.bossHp=1;game.clock=135;hitBoss({type:'PUNCH'},'PUNCH')});await page.waitForTimeout(1200);assert.equal(await page.evaluate(()=>game.mode),'RUN');
+await page.evaluate(()=>{game.clock=179.99});await page.waitForTimeout(150);assert.equal(await page.evaluate(()=>game.mode),'RESULT');
+assert.match(await page.locator('#result-title').innerText(),/РАНГ/);assert.match(await page.locator('#result-life').innerText(),/%/);
+await page.screenshot({path:'result.png'});
+await page.click('#again');assert.equal(await page.evaluate(()=>game.misses),0);assert.equal(await page.evaluate(()=>game.travel),0);
+await page.evaluate(()=>{pause();resume()});assert.equal(await page.evaluate(()=>game.mode),'RUN');
+await page.evaluate(()=>{game.clock=1;const l=Array.from({length:33},()=>({x:.5,y:.5,visibility:1}));l[11]={x:.4,y:.3};l[12]={x:.6,y:.3};l[23]={x:.45,y:.6};l[24]={x:.55,y:.6};l[25]={x:.45,y:.7};l[26]={x:.55,y:.8};l[27]={x:.45,y:.95};l[28]={x:.55,y:.95};cam.base={shY:.3,hipY:.6};cam.stepSide=0;processPose(l,performance.now())});assert.ok(await page.evaluate(()=>game.runUntil)>0);
+assert.deepEqual(errors,[]);await page.setViewportSize({width:844,height:390});await page.click('#pause-btn');await page.screenshot({path:'mobile.png'});
+console.log('PASS: start, stopped/running camera, deceleration, nonfatal misses, comic expiry, boss, 180-second finish, score, restart, pause and synthetic pose input. No browser errors.');
+await browser.close();})().catch(e=>{console.error(e);process.exit(1)});
