@@ -57,3 +57,11 @@ node tests/route.cjs
 TEST_URL=http://127.0.0.1:8084 node tests/choreography.cjs
 TEST_URL=http://127.0.0.1:8084 node tests/scene.cjs
 ```
+
+## Opening environment polish (0.7)
+
+The first 120 route metres (about 12 seconds at nominal speed) add curved palm fronds, ferns, layered masonry with bevels and moss, carved gateway medallions, rope bridge rails and a distant mountain silhouette. The detail geometry lives in `world-detail.js`. A deterministic 512px stone texture includes colour variation and small bump detail. Soft canopy shade is a baked alpha mask on the track, not real volumetric lighting or dynamic shadow maps.
+
+Static batches are split into 96m sections to permit frustum culling. The lane remains open and the existing cue times, actions and scoring are unchanged. The new style is still procedural and stylized; this is an initial improvement over the angular tree crowns, not reference-quality art. Physical iPhone 11 performance is not yet measured.
+
+![Opening route before and after the environment update](docs/opening-before-after.png)

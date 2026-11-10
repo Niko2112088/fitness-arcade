@@ -35,7 +35,7 @@ route.js owns the first segment choreography. Original three.js geometry is rebu
 
 Compare at 360x202,10fps, source start=0, virtual review start=0. Report raw pixel mismatch for transparency, but it mixes original scene artwork and camera perspective with movement. It is not a valid independent proof that camera speed/easing match. Event schedule boundaries can be checked separately; shader motion/perspective and eye-level deviations require the visual sheets. No claim of full fidelity unless every spec row passes independently. Native iPhone camera/AirPlay, long-session thermal performance and high-detail character work remain unverified.
 
-## Recorded validation
+## Recorded validation — version 0.6 (before environment polish)
 
 - Reanimate captured 300 deterministic review frames at 10 fps, 360×202; compared the first 299 with the cropped reference at offset 0. The recording is a nominal-speed demonstration, not a camera-recognition test or a device frame-rate benchmark.
 - Pixel comparison failed: mean mismatch 93.26% against 5%. Activity comparison also failed: peak differs by −12.1s; end/duration differ by +0.1s. Different artwork, the recorded person's motion and the camera angle contribute to these metrics. They do not establish matched camera easing. Exact visual fidelity is **not achieved**.
@@ -43,3 +43,9 @@ Compare at 360x202,10fps, source start=0, virtual review start=0. Report raw pix
 - The full recording precedes a flame-shader portability correction (ascending smoothstep edges); a subsequent 4-frame capture checked the final shader at 16.2s. No intended appearance change. Final WebGL trace: 6 programs, 399 scene objects, 57.5 average instrumented draw calls/frame. The trace is SwiftShader, not iPhone hardware.
 - Passed Node route checks, Playwright choreography checks, existing complete-session gameplay and route-task checks, and the WebGL scene smoke test. These cover scoring once, miss idempotence, low-impact conversion, freeze tasks, full result/reset, hidden rejected guardian and scene rendering. Synthetic pose tests do not validate real exercise recognition.
 - No new music track or reference audio is bundled; the existing browser-generated music remains.
+
+## Version 0.7 — opening environment polish
+
+This is an original art pass over the first 120m, not a new claim of reference fidelity. Cue timing and camera motion code are unchanged. Compare [the same camera frames before and after](opening-before-after.png): 0.4s (clear track), 1.1s (fire bar) and 7.4s (bridge). Rounded rocks, folded palm fronds, ferns, bevelled masonry, moss, gateway medallions, rope rails and distant mountain silhouettes replace the plain opening. The soft canopy mask approximates shade; there are no volumetric sun shafts or dynamic shadow maps.
+
+At review times 0.4 / 1.1 / 4.8 / 7.4 / 9.9 seconds the updated scene recorded 66 / 58 / 56 / 57 / 64 draw calls and 147280 / 143482 / 143320 / 143568 / 123276 triangles. The baseline had 14–22 calls and roughly 63536–63632 triangles. Detail increases GPU work despite section-based frustum culling; these counters are not an FPS or thermal measurement on an iPhone. Software Chromium produced these captures. The pixel/activity statistics above belong to version 0.6 and were not remeasured for this art pass.
