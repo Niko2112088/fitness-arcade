@@ -38,7 +38,7 @@ window.createTempleWorld=function(canvas){
  for(let s=0;s<1850;s+=12){const g=station(s),cave=(s>128&&s<275)||(s>400&&s<720);
   for(const side of [-1,1]){cube(edge,side*3.7,.22,0,.45,.65,11.7,g);cube(stone,side*4.4,2.6,0,1.2,5.2,1.4,g);cube(gold,side*4.4,5.35,0,1.6,.25,1.8,g);
    if(cave){mesh(rockGeo,edge,side*7,3.4,0,4,6,6,g);mesh(crystalGeo,crystal,side*4.7,2.1,3,1,1,1,g).rotation.z=side*.25;}
-   else if(s>275&&s<400){mesh(trunkGeo,wood,side*(7+random()*6),4.5,2,1,9,1,g);for(let j=0;j<3;j++)mesh(rockGeo,leaf[j],side*9,6+j*1.8,0,5-j,1.8,4,g);}
+   else if(s>275&&s<300){mesh(trunkGeo,wood,side*(7+random()*6),4.5,2,1,9,1,g);for(let j=0;j<3;j++)mesh(rockGeo,leaf[j],side*9,6+j*1.8,0,5-j,1.8,4,g);}
    if(s%24===0){cube(edge,side*3.8,1.5,0,.6,2,.65,g);mesh(flameGeo,flame,side*3.8,2.8,0,1,1,1,g);}
   }
   if(cave){const roof=mesh(rockGeo,wood,0,8,0,10,2.8,8,g);roof.rotation.z=.2;cube(gold,0,6.5,0,9,.22,.3,g);}
@@ -79,6 +79,7 @@ window.createTempleWorld=function(canvas){
  const watcher=new T.Group();watcher.name='watcher';scene.add(watcher);cube(edge,0,1.8,0,2.2,3.6,1.4,watcher);cube(gold,0,3.8,0,2.6,.3,1.8,watcher);for(const x of [-.55,.55])cube(hot,x,2.8,.75,.5,.15,.1,watcher);
  // Retain a named disabled placeholder for compatibility; approved guardian still awaits a real asset.
  const sentinel=new T.Group();sentinel.name='sentinel';scene.add(sentinel);
+ const combat=window.createTempleCombat?.({T,scene,center,yaw});
  const reusable=new T.Vector3();let lastState=null;
  function render(state){lastState=state;const {time,travel,pace,action,age,event,reduced,menu,freeze=false}=state,s=menu?8:travel*10;
   const p=window.TempleRoute?.chapter(time)||{palette:'sun'},theme=time<31?p.palette:s%600>200?'crystal':'jungle';
@@ -87,16 +88,17 @@ window.createTempleWorld=function(canvas){
   const envelope=age>=0&&age<.7?Math.sin(age/.7*Math.PI):0,motion=reduced?0:envelope;
   const shift=action==='LEFT'?-1.5*motion:action==='RIGHT'?1.5*motion:0;
   camera.position.set(center(s)+shift,2.05+(action==='DUCK'?-1.1*motion:action==='JUMP'?.95*motion:action==='STEP'?.15*motion:0)+(reduced?0:Math.sin(travel*17)*.035*pace),-s);
+  if(action.startsWith('PUNCH')&&!reduced)camera.position.z-=motion*.08;
   reusable.set(center(s+12),2.05,-s-12);camera.lookAt(reusable);camera.rotation.z=reduced?0:-shift*.055;camera.fov=76+(reduced?0:pace*6);camera.updateProjectionMatrix();
   Object.values(hazards).forEach(g=>g.visible=false);landing.visible=false;relic.visible=false;sentinel.visible=false;
-  if(event&&event.type!=='STILL'&&event.phase!=='boss'){
+  if(event&&!event.combat&&event.type!=='STILL'&&event.phase!=='boss'){
    const kind=event.visual||({DUCK:'log',JUMP:'spikes',STEP:'roots',LEFT:'roller',RIGHT:'pillar'}[event.type]||'pillar'),g=hazards[kind],d=Math.max(-3,(event.at-time)*10+2);
    if(g){g.visible=true;g.position.set(center(s+d)+(event.type==='LEFT'?1.5:event.type==='RIGHT'?-1.5:0),0,-s-d);g.rotation.set(0,yaw(s+d),0);if(kind==='roller')g.rotation.x=time*3;
     if(kind.startsWith('fire'))g.children[0].material.uniforms.time.value=time;}
    if(['JUMP','STEP','LEFT','RIGHT'].includes(event.type)){relic.visible=true;relic.position.set(center(s+d)+(event.type==='LEFT'?-1.5:event.type==='RIGHT'?1.5:0),1.3,-s-d);relic.rotation.y=time*3;}
    if(['JUMP','STEP'].includes(event.type)){landing.visible=true;landing.position.set(center(s+d+3),0,-s-d-3);landing.rotation.y=yaw(s+d+3);}
   }
-  watcher.visible=time>=52&&time<58&&!menu;watcher.position.set(center(s+8),0,-s-8);watcher.rotation.y=yaw(s+8);renderer.render(scene,camera);
+  watcher.visible=time>=52&&time<58&&!menu;watcher.position.set(center(s+8),0,-s-8);watcher.rotation.y=yaw(s+8);combat?.render({time,travel,reduced,events:state.combatEvents,menu});renderer.render(scene,camera);
  }
  return {renderer,camera,scene,render,dispose(){renderer.dispose()},get lastState(){return lastState}};
 };

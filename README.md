@@ -69,3 +69,13 @@ Static batches are split into 96m sections to permit frustum culling. The lane r
 ## Ground fire correction (0.7.1)
 
 Fire now rises from a charred strip on the track. The two former floating-fire cues at 1.35s and 26.6s require a jump (a step in low-impact mode); overhead logs and stone bars still require ducking. Timings are unchanged.
+
+## Running combat phrase (0.8)
+
+At 32–40 active seconds, three original flying temple masks approach the player. Punch each as it reaches you: it spins away with stone shards and the existing comic impact. All three hits award a single +300 series bonus in addition to normal scoring. A miss resets the ordinary combo and allows the run to continue. The next duck is at 41 seconds. Keep jogging to move the scenery while punching.
+
+Choose **СЕРИЯ УДАРОВ · 8 С** in the menu for an automatic demonstration without camera input. Reduced-motion mode suppresses the mask flight and shards. `combat.js` owns the cue data and reusable target meshes; body details use instanced geometry. The masks are original practice targets. No character models or footage from the reference are bundled.
+
+`TEST_URL=http://127.0.0.1:8084 node tests/combat.cjs` checks scoring, bonus/misses, continuous running, target animation reset and reduced motion. Actual iPhone recognition of running and punching together still needs physical validation.
+
+![Running combat preview — first successful hit](docs/combat-hit.png)
